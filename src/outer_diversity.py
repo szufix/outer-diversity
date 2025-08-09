@@ -1,14 +1,14 @@
 
 
-def _outer_diversity_brute_force(election):
+def _outer_diversity_brute_force(votes):
     pass
 
 
-def _outer_diversity_growing_balls(election):
+def _outer_diversity_growing_balls(votes):
     pass
 
 
-def _outer_diversity_sampling(election):
+def _outer_diversity_sampling(votes):
     pass
 
 
@@ -19,8 +19,8 @@ OUTER_DIVERSITY_METHODS = {
 }
 
 
-def compute_outer_diversity(election, method):
-    return OUTER_DIVERSITY_METHODS[method](election)
+def compute_outer_diversity(votes, method):
+    return OUTER_DIVERSITY_METHODS[method](votes)
 
 
 

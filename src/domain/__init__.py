@@ -28,6 +28,11 @@ from src.domain.sp_tree import (
     ext_sp_double_forked_domain,
 )
 
+from src.domain.special import (
+    single_vote_domain,
+    ext_single_vote_domain,
+)
+
 __all__ = [
     'single_crossing_domain',
     'single_peaked_domain',
@@ -48,4 +53,6 @@ __all__ = [
     'ext_single_crossing_domain',
     'ext_single_peaked_domain',
     'ext_sp_double_forked_domain',
+    'single_vote_domain',
+    'ext_single_vote_domain',
 ]

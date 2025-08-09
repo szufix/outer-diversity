@@ -12,6 +12,7 @@ def domain_to_list(domain):
     """
     return [tuple(vote) for vote in domain]
 
+
 def verify_domain_size(domain):
     return len(domain_to_set(domain)) == len(domain)
 

@@ -1,4 +1,4 @@
-NICE_NAME = {
+LABEL = {
     'caterpillar': 'GS/cat',
     'balanced': 'GS/bal',
     'single_peaked': 'SP',
@@ -23,6 +23,9 @@ NICE_NAME = {
     'ext_euclidean_1d': 'Ext. 1D-Int.',
     'ext_single_peaked': 'Ext. SP',
     'ext_single_crossing': 'Ext. SC',
+
+    'single_vote': 'Single Vote',
+    'ext_single_vote': 'Ext. Single Vote',
 }
 
 LINE = {
@@ -38,6 +41,8 @@ LINE = {
     'spoc': 'solid',
     'single_peaked_conitzer': 'solid',
     'single_peaked_walsh': 'solid',
+    'single_vote': 'solid',
+    'ext_single_vote': 'solid',
 }
 
 MARKER = {
@@ -53,22 +58,10 @@ MARKER = {
     'spoc': 'o',
     'single_peaked_conitzer': 'o',
     'single_peaked_walsh': 'o',
+    'single_vote': '*',
+    'ext_single_vote': '*',
 }
 
-COLOR2 = {
-    'caterpillar': 'olivedrab',
-    'balanced': 'olive',
-    'single_peaked': 'darkgreen',
-    'single_crossing': 'darkseagreen',
-    'euclidean_3d': 'blue',
-    'euclidean_2d': 'royalblue',
-    'euclidean_1d': 'deepskyblue',
-    'impartial': 'black',
-    'sp_double_forked': 'orange',
-    'spoc': 'mediumspringgreen',
-    'single_peaked_conitzer': 'deeppink',
-    'single_peaked_walsh': 'darkviolet',
-}
 
 
 COLOR = {
@@ -84,4 +77,7 @@ COLOR = {
     'spoc': 'tab:red',
     'single_peaked_conitzer': 'tab:orange',
     'single_peaked_walsh': 'tab:blue',
+
+    'single_vote': 'black',
+    'ext_single_vote': 'gray',
 }
