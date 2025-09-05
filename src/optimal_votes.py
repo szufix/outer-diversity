@@ -285,13 +285,19 @@ def find_optimal_facilities_milp_approx(graph: nx.Graph, m: int) -> Tuple[List[i
     model.optimize()
 
     if model.status == GRB.OPTIMAL:
-        facilities = [j for j in nodes if x[j].x > 0.5]
+        # Select top m facilities with highest x values
+        facility_values = [(j, x[j].x) for j in nodes]
+        facility_values.sort(key=lambda item: item[1], reverse=True)
+        facilities = [facility_values[i][0] for i in range(m)]
         total_cost = int(model.objVal)
         return facilities, total_cost
     elif model.status == GRB.TIME_LIMIT:
         # Return best solution found so far
         if model.solCount > 0:
-            facilities = [j for j in nodes if x[j].x > 0.5]
+            # Select top m facilities with highest x values
+            facility_values = [(j, x[j].x) for j in nodes]
+            facility_values.sort(key=lambda item: item[1], reverse=True)
+            facilities = [facility_values[i][0] for i in range(m)]
             total_cost = int(model.objVal)
             print(f"Time limit reached for m={m}. Best solution found: {total_cost} (gap: {model.MIPGap:.2%})")
             return facilities, total_cost
@@ -1040,10 +1046,10 @@ def plot_optimal_nodes_results(
     # Define colors and styles for each method
     method_styles = {
         'ilp': {'marker': 'o', 'linestyle': '-', 'color': 'black', 'label': 'ILP (Optimal)', 'linewidth': 3, 'markersize': 5},
-        'ilp_fast': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'LP Relaxation', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+        'ilp_fast': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'LP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
         'sa': {'marker': 's', 'linestyle': '--', 'color': 'red', 'label': 'Simulated Annealing', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
         'greedy_ilp': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'Greedy ILP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-        'greedy_ilp_fast': {'marker': 'v', 'linestyle': '-.', 'color': 'orange', 'label': 'Greedy ILP Fast', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8}
+        'greedy_ilp_fast': {'marker': 'v', 'linestyle': '-.', 'color': 'orange', 'label': 'Greedy LP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8}
     }
 
     # Plot results for each method

@@ -7,11 +7,11 @@ from src.optimal_votes import (
 if __name__ == "__main__":
 
     methods = [
-        # 'ilp',
-        # 'ilp_fast',
+        'ilp',
+        'ilp_fast',
         'sa',
         'greedy_ilp',
-        'greedy_ilp_fast',
+        # 'greedy_ilp_fast',
     ]
 
     # num_candidates = 3
@@ -21,14 +21,14 @@ if __name__ == "__main__":
     # domain_sizes = range(1,24+1)
 
     num_candidates = 5
-    domain_sizes = range(1,20+1)
+    domain_sizes = range(1,120+1)
 
     # num_candidates = 8
     # domain_sizes = range(1,9+1)
 
 
-    for method_name in methods:
-        print('Method:', method_name)
-        compute_optimal_nodes(num_candidates, domain_sizes, method_name)
+    # for method_name in methods:
+    #     print('Method:', method_name)
+    #     compute_optimal_nodes(num_candidates, domain_sizes, method_name)
 
     plot_optimal_nodes_results(num_candidates, methods, with_structured_domains=False)
