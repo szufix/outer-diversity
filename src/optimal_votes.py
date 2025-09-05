@@ -404,7 +404,7 @@ def create_vote_swap_graph(m: int) -> Tuple[nx.Graph, Dict[tuple, int], Dict[int
 
     # Add edges between votes that differ by one adjacent swap
     for i, vote1 in enumerate(all_votes):
-        print(i)
+        # print(i)
         for vote2 in all_votes[i+1:]:
             if is_one_swap_distance(vote1, vote2):
                 G.add_edge(vote_to_int[vote1], vote_to_int[vote2])
@@ -490,11 +490,9 @@ def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
     """
     nodes = list(graph.nodes())
     n = len(nodes)
-    print("00")
 
     if m > n:
         return nodes, compute_total_cost(graph, set(nodes))
-    print("0")
     # Precompute all pairwise distances as numpy array for faster access
     node_to_idx = {node: i for i, node in enumerate(nodes)}
     distance_matrix = np.full((n, n), np.inf)
@@ -505,11 +503,9 @@ def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
         for target, dist in distances.items():
             target_idx = node_to_idx[target]
             distance_matrix[node_idx, target_idx] = dist
-    print("1")
     # Initialize with random solution
     current_facilities_idx = np.random.choice(n, size=m, replace=False)
     current_cost = compute_total_cost_numpy(distance_matrix, current_facilities_idx)
-    print("2")
     best_facilities_idx = current_facilities_idx.copy()
     best_cost = current_cost
 
@@ -522,7 +518,7 @@ def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
     temp_update_freq = max(1, max_iterations // 1000)
 
     for iteration in range(max_iterations):
-        print(iteration)
+        # print(iteration)
         # Generate neighbor solution by replacing one facility
         new_facilities_idx = current_facilities_idx.copy()
 
@@ -587,7 +583,8 @@ def compute_total_cost_numpy(distance_matrix: np.ndarray, facilities_idx: np.nda
 
     return np.sum(min_distances)
 
-def find_optimal_facilities_greedy_ilp(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
+def find_optimal_facilities_greedy_ilp(
+        graph: nx.Graph, m: int, previous_nodes) -> Tuple[List[int], int]:
     """
     Find m facilities using greedy ILP approach - at each iteration find one new facility
     that minimizes the total cost when added to the current facility set.
@@ -602,73 +599,66 @@ def find_optimal_facilities_greedy_ilp(graph: nx.Graph, m: int) -> Tuple[List[in
     nodes = list(graph.nodes())
     n = len(nodes)
 
-    if m >= n:
-        return nodes, 0
-    if m <= 0:
-        return [], float('inf')
-
     # Precompute all pairwise distances
     distances = {}
     for i in nodes:
         distances[i] = nx.single_source_shortest_path_length(graph, i)
 
-    facilities = []
+    facilities = previous_nodes
 
-    for iteration in range(m):
-        print(f"Greedy ILP iteration {iteration + 1}/{m}")
 
-        # Find the best facility to add using ILP
-        best_facility = None
-        best_cost = float('inf')
+    # Find the best facility to add using ILP
+    best_facility = None
+    best_cost = float('inf')
 
-        # Try each remaining node as a potential facility
-        remaining_nodes = [node for node in nodes if node not in facilities]
+    # Try each remaining node as a potential facility
+    remaining_nodes = [node for node in nodes if node not in facilities]
 
-        for candidate in remaining_nodes:
-            # Solve ILP with current facilities + candidate
-            current_facilities = facilities + [candidate]
+    for candidate in remaining_nodes:
+        # Solve ILP with current facilities + candidate
+        current_facilities = facilities + [candidate]
 
-            # Create model for assignment problem with fixed facilities
-            model = gp.Model(f"greedy_ilp_iter_{iteration}")
-            model.setParam('OutputFlag', 0)
-            # model.setParam('Threads', -1)
-            # model.setParam('TimeLimit', 60)  # 1 minute per iteration
+        # Create model for assignment problem with fixed facilities
+        model = gp.Model(f"greedy_ilp_iter_{m}")
+        model.setParam('OutputFlag', 0)
+        # model.setParam('Threads', -1)
+        # model.setParam('TimeLimit', 60)  # 1 minute per iteration
 
-            # Assignment variables: y[i,j] = 1 if node i is assigned to facility j
-            y = model.addVars(nodes, current_facilities, vtype=GRB.BINARY, name="assignment")
+        # Assignment variables: y[i,j] = 1 if node i is assigned to facility j
+        y = model.addVars(nodes, current_facilities, vtype=GRB.BINARY, name="assignment")
 
-            # Objective: minimize total assignment cost
-            obj = gp.quicksum(distances[j][i] * y[i, j] for i in nodes for j in current_facilities)
-            model.setObjective(obj, GRB.MINIMIZE)
+        # Objective: minimize total assignment cost
+        obj = gp.quicksum(distances[j][i] * y[i, j] for i in nodes for j in current_facilities)
+        model.setObjective(obj, GRB.MINIMIZE)
 
-            # Each node must be assigned to exactly one facility
-            for i in nodes:
-                model.addConstr(gp.quicksum(y[i, j] for j in current_facilities) == 1, f"assign_{i}")
+        # Each node must be assigned to exactly one facility
+        for i in nodes:
+            model.addConstr(gp.quicksum(y[i, j] for j in current_facilities) == 1, f"assign_{i}")
 
-            # Solve the assignment problem
-            model.optimize()
+        # Solve the assignment problem
+        model.optimize()
 
-            if model.status == GRB.OPTIMAL:
-                cost = int(model.objVal)
-                if cost < best_cost:
-                    best_cost = cost
-                    best_facility = candidate
-            else:
-                print(f"Assignment problem failed for candidate {candidate}")
-
-        # Add the best facility found
-        if best_facility is not None:
-            facilities.append(best_facility)
-            print(f"Added facility {best_facility}, current cost: {best_cost}")
+        if model.status == GRB.OPTIMAL:
+            cost = int(model.objVal)
+            if cost < best_cost:
+                best_cost = cost
+                best_facility = candidate
         else:
-            print(f"No valid facility found at iteration {iteration + 1}")
-            break
+            print(f"Assignment problem failed for candidate {candidate}")
+
+    # Add the best facility found
+    if best_facility is not None:
+        facilities.append(best_facility)
+        print(f"Added facility {best_facility}, current cost: {best_cost}")
+    else:
+        print(f"No valid facility found at iteration {m + 1}")
 
     # Compute final cost
     final_cost = compute_total_cost(graph, set(facilities))
     return facilities, final_cost
 
-def find_optimal_facilities_greedy_ilp_fast(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
+def find_optimal_facilities_greedy_ilp_fast(
+        graph: nx.Graph, m: int, previos_nodes) -> Tuple[List[int], int]:
     """
     Faster version of greedy ILP that uses continuous relaxation for speed.
 
@@ -682,65 +672,57 @@ def find_optimal_facilities_greedy_ilp_fast(graph: nx.Graph, m: int) -> Tuple[Li
     nodes = list(graph.nodes())
     n = len(nodes)
 
-    if m >= n:
-        return nodes, 0
-    if m <= 0:
-        return [], float('inf')
-
     # Precompute all pairwise distances
     distances = {}
     for i in nodes:
         distances[i] = nx.single_source_shortest_path_length(graph, i)
 
-    facilities = []
+    facilities = previos_nodes
 
-    for iteration in range(m):
-        print(f"Greedy ILP Fast iteration {iteration + 1}/{m}")
 
-        best_facility = None
-        best_cost = float('inf')
+    best_facility = None
+    best_cost = float('inf')
 
-        remaining_nodes = [node for node in nodes if node not in facilities]
+    remaining_nodes = [node for node in nodes if node not in facilities]
 
-        for candidate in remaining_nodes:
-            current_facilities = facilities + [candidate]
+    for candidate in remaining_nodes:
+        current_facilities = facilities + [candidate]
 
-            # Create LP relaxation model for faster solving
-            model = gp.Model(f"greedy_ilp_fast_iter_{iteration}")
-            model.setParam('OutputFlag', 0)
-            model.setParam('Threads', -1)
-            model.setParam('TimeLimit', 30)  # 30 seconds per iteration
+        # Create LP relaxation model for faster solving
+        model = gp.Model(f"greedy_ilp_fast_iter_{m}")
+        model.setParam('OutputFlag', 0)
+        model.setParam('Threads', 0)
+        model.setParam('TimeLimit', 30)  # 30 seconds per iteration
 
-            # Continuous assignment variables (LP relaxation)
-            y = model.addVars(nodes, current_facilities, vtype=GRB.CONTINUOUS,
-                             lb=0, ub=1, name="assignment")
+        # Continuous assignment variables (LP relaxation)
+        y = model.addVars(nodes, current_facilities, vtype=GRB.CONTINUOUS,
+                         lb=0, ub=1, name="assignment")
 
-            # Objective: minimize total assignment cost
-            obj = gp.quicksum(distances[j][i] * y[i, j] for i in nodes for j in current_facilities)
-            model.setObjective(obj, GRB.MINIMIZE)
+        # Objective: minimize total assignment cost
+        obj = gp.quicksum(distances[j][i] * y[i, j] for i in nodes for j in current_facilities)
+        model.setObjective(obj, GRB.MINIMIZE)
 
-            # Each node must be assigned to exactly one facility
-            for i in nodes:
-                model.addConstr(gp.quicksum(y[i, j] for j in current_facilities) == 1, f"assign_{i}")
+        # Each node must be assigned to exactly one facility
+        for i in nodes:
+            model.addConstr(gp.quicksum(y[i, j] for j in current_facilities) == 1, f"assign_{i}")
 
-            # Solve the LP relaxation
-            model.optimize()
+        # Solve the LP relaxation
+        model.optimize()
 
-            if model.status == GRB.OPTIMAL:
-                cost = model.objVal  # LP relaxation gives lower bound
-                if cost < best_cost:
-                    best_cost = cost
-                    best_facility = candidate
-            else:
-                print(f"LP relaxation failed for candidate {candidate}")
-
-        # Add the best facility found
-        if best_facility is not None:
-            facilities.append(best_facility)
-            print(f"Added facility {best_facility}, LP lower bound: {best_cost:.2f}")
+        if model.status == GRB.OPTIMAL:
+            cost = model.objVal  # LP relaxation gives lower bound
+            if cost < best_cost:
+                best_cost = cost
+                best_facility = candidate
         else:
-            print(f"No valid facility found at iteration {iteration + 1}")
-            break
+            print(f"LP relaxation failed for candidate {candidate}")
+
+    # Add the best facility found
+    if best_facility is not None:
+        facilities.append(best_facility)
+        print(f"Added facility {best_facility}, LP lower bound: {best_cost:.2f}")
+    else:
+        print(f"No valid facility found at iteration {m + 1}")
 
     # Compute final cost using actual integer assignment
     final_cost = compute_total_cost(graph, set(facilities))
@@ -889,27 +871,35 @@ def swap_distance(vote1: tuple, vote2: tuple) -> int:
 def compute_optimal_nodes(num_candidates, domain_sizes, method_name):
     results = []
 
+    print("create a graph")
+    vote_graph, vote_to_int, int_to_vote = create_vote_swap_graph(num_candidates)
+    print("graph created")
+
+    previous_nodes = []
+
     for domain_size in domain_sizes:
         print(f"Processing domain size: {domain_size}")
 
-
-        print("create a graph")
-        vote_graph, vote_to_int, int_to_vote = create_vote_swap_graph(num_candidates)
-        print("graph created")
-
         if method_name == 'ilp':
-            optimal_nodes, total_cost = find_optimal_ilp(vote_graph, domain_size)
+            optimal_nodes, total_cost = find_optimal_ilp(
+                                                vote_graph, domain_size)
         elif method_name == 'ilp_fast':
-            optimal_nodes, total_cost = find_optimal_facilities_milp_approx(vote_graph, domain_size)
+            optimal_nodes, total_cost = find_optimal_facilities_milp_approx(
+                                                vote_graph, domain_size)
         elif method_name == 'greedy_ilp':
-            optimal_nodes, total_cost = find_optimal_facilities_greedy_ilp(vote_graph, domain_size)
+            optimal_nodes, total_cost = find_optimal_facilities_greedy_ilp(
+                                                vote_graph, domain_size, previous_nodes)
         elif method_name == 'greedy_ilp_fast':
-            optimal_nodes, total_cost = find_optimal_facilities_greedy_ilp_fast(vote_graph, domain_size)
+            optimal_nodes, total_cost = find_optimal_facilities_greedy_ilp_fast(
+                                                vote_graph, domain_size, previous_nodes)
+
         elif method_name == 'sa':
             optimal_nodes, total_cost = find_optimal_facilities_simulated_annealing(
                 vote_graph, domain_size, max_iterations=10000)
         else:
             raise ValueError(f"Unknown method: {method_name}")
+
+        previous_nodes = optimal_nodes
 
         # Convert results for consistency
         if method_name == 'sa':
@@ -1050,7 +1040,7 @@ def plot_optimal_nodes_results(
     # Define colors and styles for each method
     method_styles = {
         'ilp': {'marker': 'o', 'linestyle': '-', 'color': 'black', 'label': 'ILP (Optimal)', 'linewidth': 3, 'markersize': 5},
-        'lp': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'LP Relaxation', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+        'ilp_fast': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'LP Relaxation', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
         'sa': {'marker': 's', 'linestyle': '--', 'color': 'red', 'label': 'Simulated Annealing', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
         'greedy_ilp': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'Greedy ILP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
         'greedy_ilp_fast': {'marker': 'v', 'linestyle': '-.', 'color': 'orange', 'label': 'Greedy ILP Fast', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8}
@@ -1058,6 +1048,7 @@ def plot_optimal_nodes_results(
 
     # Plot results for each method
     for method, results in all_results.items():
+        print(method)
         domain_sizes = [result['domain_size'] for result in results]
         total_costs = [result['total_cost'] for result in results]
         outer_diversity = [1 - tc / normalization(num_candidates) for tc in total_costs]
@@ -1126,31 +1117,3 @@ def plot_optimal_nodes_results(
     plt.savefig(f'img/optimal_nodes/outer_diversity_{num_candidates}.png', dpi=200, bbox_inches='tight')
     plt.show()
 
-
-# Example usage
-if __name__ == "__main__":
-
-    methods = [
-        # 'ilp',
-        # 'greedy_ilp'
-        'sa',
-    ]
-
-    # num_candidates = 3
-    # domain_sizes = range(1,6+1)
-
-    # num_candidates = 4
-    # domain_sizes = range(1,24+1)
-
-    num_candidates = 8
-    domain_sizes = range(1,12+1)
-
-    # num_candidates = 8
-    # domain_sizes = range(1,9+1)
-
-
-    for method_name in methods:
-        print('Method:', method_name)
-        compute_optimal_nodes(num_candidates, domain_sizes, method_name)
-
-    plot_optimal_nodes_results(num_candidates, methods, with_structured_domains=True)
