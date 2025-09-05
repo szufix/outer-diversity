@@ -1,4 +1,8 @@
+import math
 
+
+def normalization(m):
+    return math.factorial(m) // 2 * math.comb(m, 2)
 
 def _outer_diversity_brute_force(votes):
     pass

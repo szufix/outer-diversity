@@ -6,6 +6,8 @@ from src.domain.extenders import *
 from src.domain import *
 from src.print_utils import *
 
+from src.outer_diversity import normalization
+
 domains = {
     'euclidean_3d': euclidean_3d_domain,
     'euclidean_2d': euclidean_2d_domain,
@@ -19,6 +21,8 @@ domains = {
     'ext_single_vote': ext_single_vote_domain,
     'single_vote': single_vote_domain,
 }
+
+
 
 
 def load_domain_size_csv(num_candidates):
@@ -39,6 +43,7 @@ def load_domain_size_csv(num_candidates):
 
 def _get_max_num_swaps(m):
     return int(m*(m-1)/2 + 1)
+
 
 
 def save_domain_size_csv(size, num_candidates):
@@ -179,6 +184,11 @@ def print_domain_diversity(base, candidate_range):
             # which is equal to 1*[0] + 2*[1] + 3*[2] + 4*[3] + 5*[4]
             for i in range(len(x_range)-1):
                 total_diversity += (i+1) * size_increase[name][i]
+                print(i, total_diversity)
+
+            # print(total_diversity, normalization(num_candidates))
+            total_diversity /= normalization(num_candidates)
+            total_diversity = 1 - total_diversity
 
             diversity_data[num_candidates][name] = total_diversity
 
@@ -202,7 +212,7 @@ def print_domain_diversity(base, candidate_range):
     for name in sorted_base:
         row = LABEL[name]
         for num_candidates in candidate_range:
-            row += f" & {diversity_data[num_candidates][name]}"
+            row += f" & {round(diversity_data[num_candidates][name], 3)}"
         row += " \\\\"
         print(row)
 
@@ -215,23 +225,24 @@ def print_domain_diversity(base, candidate_range):
 if __name__ == "__main__":
 
     base = [
-        'euclidean_3d',
-        'caterpillar',
-        'spoc',
-        'euclidean_2d',
-        'sp_double_forked',
-        'balanced',
-        'single_peaked',
-        'euclidean_1d',
-        'single_crossing',
-        'ext_single_vote',
+        # 'euclidean_3d',
+        # 'euclidean_2d',
+        # 'spoc',
+        # 'sp_double_forked',
+        # 'caterpillar',
+        # 'balanced',
+        # 'single_peaked',
+        # 'single_crossing',
+        # 'euclidean_1d',
+        # 'ext_single_vote',
         'single_vote',
     ]
 
-    candidate_range = [5,6,7,8]
+    candidate_range = [10]
+    # candidate_range = [3]
 
-    # for num_candidates in candidate_range:
-        # compute_domain_size(base, num_candidates)
+    for num_candidates in candidate_range:
+        compute_domain_size(base, num_candidates)
 
         # plot_domain_size_total(base, num_candidates)
         # plot_domain_size_increase(base, num_candidates)
