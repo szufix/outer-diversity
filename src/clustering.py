@@ -2,17 +2,8 @@ import random
 import numpy as np
 import itertools
 from tqdm import tqdm
+from src.diversity.diversity_utils import swap_distance_between_potes
 
-def swap_distance_between_potes(pote_1: list, pote_2: list, m : int) -> int:
-    """ Return: Swap distance between two potes """
-    swap_distance = 0
-    for a in range(m):
-        for b in range(m):
-            if (pote_1[a] < pote_1[b] and pote_2[a] >= pote_2[b]):
-                swap_distance += 0.5
-            if (pote_1[a] <= pote_1[b] and pote_2[a] > pote_2[b]):
-                swap_distance += 0.5
-    return swap_distance
 
 def get_vote_dists(election):
     try:

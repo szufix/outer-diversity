@@ -12,7 +12,7 @@ import random
 import math
 import numpy as np
 
-from src.outer_diversity import normalization
+from src.diversity.diversity_utils import normalization
 
 
 import networkx as nx
@@ -171,6 +171,22 @@ def find_optimal_facilities_greedy(graph: nx.Graph, m: int) -> Tuple[List[int], 
     final_cost = compute_total_cost(graph, facilities)
     return list(facilities), final_cost
 
+def compute_single_scores(graph: nx.Graph, facilities: Set[int]) -> List[int]:
+    """
+    Compute individual scores: distance from each node to closest facility.
+    """
+    nodes = list(graph.nodes())
+    scores = []
+
+    for node in nodes:
+        min_dist = float('inf')
+        for facility in facilities:
+            dist = nx.shortest_path_length(graph, node, facility)
+            min_dist = min(min_dist, dist)
+        scores.append(min_dist)
+
+    return scores
+
 def find_optimal_facilities_bruteforce(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
     """
     Find optimal facilities using brute force (for small graphs only).
@@ -308,57 +324,51 @@ def find_optimal_facilities_milp_approx(graph: nx.Graph, m: int) -> Tuple[List[i
 
 def find_optimal_ilp(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
     """
-    Solve the facility location problem via ILP:
-    - Select exactly m facilities.
-    - Minimize total distance from each node to its assigned facility.
-
-    Args:
-        graph: NetworkX graph (unweighted, undirected).
-        m: number of facilities to open.
-
-    Returns:
-        (facilities, total_cost)
-        facilities: list of chosen facility node indices.
-        total_cost: objective value (sum of assignment distances).
+    Solve the facility location problem via ILP with enhanced debugging.
     """
     nodes = list(graph.nodes())
     n = len(nodes)
 
+    # Handle edge cases
+    if m >= n:
+        return nodes, 0
+    if m <= 0:
+        return [], compute_total_cost(graph, set())
+
     # Precompute all-pairs shortest path distances
     distances = {i: nx.single_source_shortest_path_length(graph, i) for i in nodes}
-    max_distance = max(max(d.values()) for d in distances.values())
 
     # Create model
     model = gp.Model("compact_facility_location")
     model.setParam("OutputFlag", 0)
+    model.setParam("TimeLimit", 3600)  # 1 hour time limit
+    model.setParam("MIPGap", 0.0)      # Require optimal solution
+    model.setParam("Threads", 0)       # Use all threads
 
     # Decision variables
-    x = model.addVars(nodes, vtype=GRB.BINARY, name="facility")        # facility open
-    y = model.addVars(nodes, nodes, vtype=GRB.BINARY, name="assign")   # assignment
-    d = model.addVars(nodes, vtype=GRB.INTEGER, lb=0, ub=max_distance, name="dist")
+    x = model.addVars(nodes, vtype=GRB.BINARY, name="facility")
+    y = model.addVars(nodes, nodes, vtype=GRB.BINARY, name="assign")
 
     # Objective: minimize total distance
-    model.setObjective(gp.quicksum(d[i] for i in nodes), GRB.MINIMIZE)
+    obj = gp.quicksum(distances[j][i] * y[i, j] for i in nodes for j in nodes)
+    model.setObjective(obj, GRB.MINIMIZE)
 
     # Constraints
     model.addConstrs((gp.quicksum(y[i, j] for j in nodes) == 1 for i in nodes), name="serve")
     model.addConstrs((y[i, j] <= x[j] for i in nodes for j in nodes), name="open")
-    model.addConstrs(
-        (d[i] == gp.quicksum(distances[j][i] * y[i, j] for j in nodes) for i in nodes),
-        name="dist_consistency"
-    )
     model.addConstr(gp.quicksum(x[j] for j in nodes) == m, name="facility_count")
 
     # Warm start with greedy heuristic
     try:
-        greedy_facilities, _ = find_optimal_facilities_greedy(graph, m)
+        greedy_facilities, greedy_cost = find_optimal_facilities_greedy(graph, m)
+        print(f"ILP warm start with greedy solution: cost={greedy_cost}")
+
         for j in nodes:
             x[j].start = int(j in greedy_facilities)
         for i in nodes:
             closest = min(greedy_facilities, key=lambda f: distances[f][i])
             for j in nodes:
                 y[i, j].start = int(j == closest)
-            d[i].start = distances[closest][i]
     except Exception as e:
         print(f"Warm start failed: {e}")
 
@@ -367,216 +377,260 @@ def find_optimal_ilp(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
 
     def extract_solution() -> Tuple[List[int], int]:
         facilities = [j for j in nodes if x[j].X > 0.5]
-        return facilities, int(model.ObjVal)
+
+        # Verify the cost calculation
+        model_cost = int(model.objVal)
+        actual_cost = compute_total_cost(graph, set(facilities))
+
+        if model_cost != actual_cost:
+            print(f"WARNING: ILP cost mismatch! model_cost={model_cost}, actual_cost={actual_cost}")
+
+            # Debug: check assignment
+            print("Facility assignments:")
+            for i in nodes:
+                assigned_to = [j for j in nodes if y[i, j].X > 0.5]
+                if len(assigned_to) != 1:
+                    print(f"  Node {i} assigned to {assigned_to} (should be exactly 1)")
+                else:
+                    j = assigned_to[0]
+                    expected_dist = distances[j][i]
+                    print(f"  Node {i} -> Facility {j}, distance={expected_dist}")
+
+        return facilities, actual_cost
 
     if model.status == GRB.OPTIMAL:
-        return extract_solution()
-    if model.status == GRB.TIME_LIMIT and model.SolCount > 0:
-        facilities, cost = extract_solution()
-        print(f"MILP time limit reached for m={m}. Best: {cost}")
-        return facilities, cost
+        facilities, actual_cost = extract_solution()
+        print(f"ILP optimal solution for m={m}: cost={actual_cost}, gap={model.MIPGap:.6f}, status=OPTIMAL")
+        return facilities, actual_cost
+    elif model.status == GRB.TIME_LIMIT and model.SolCount > 0:
+        facilities, actual_cost = extract_solution()
+        print(f"ILP time limit reached for m={m}. Best: {actual_cost}, gap={model.MIPGap:.6f}")
+        return facilities, actual_cost
 
-    print(f"MILP failed with status {model.status} for m={m}")
+    print(f"ILP failed with status {model.status} for m={m}")
+    # Fallback to greedy
     try:
         return find_optimal_facilities_greedy(graph, m)
     except Exception:
         return [], float("inf")
 
-
-def create_vote_swap_graph(m: int) -> Tuple[nx.Graph, Dict[tuple, int], Dict[int, tuple]]:
-    """
-    Create a graph where nodes are integers representing votes (permutations of m candidates)
-    and edges connect votes that differ by exactly one adjacent swap.
-
-    Args:
-        m: Number of candidates
-
-    Returns:
-        Tuple of (NetworkX graph with integer nodes, vote_to_int_map, int_to_vote_map)
-    """
-    # Generate all possible votes (permutations)
-    candidates = list(range(m))
-    all_votes = list(permutations(candidates))
-
-    # Create mappings
-    vote_to_int, int_to_vote = create_vote_integer_mapping(m)
-
-    # Create graph with integer nodes
-    G = nx.Graph()
-
-    # Add all votes as integer nodes
-    for vote in all_votes:
-        G.add_node(vote_to_int[vote])
-
-    # Add edges between votes that differ by one adjacent swap
-    for i, vote1 in enumerate(all_votes):
-        # print(i)
-        for vote2 in all_votes[i+1:]:
-            if is_one_swap_distance(vote1, vote2):
-                G.add_edge(vote_to_int[vote1], vote_to_int[vote2])
-
-    return G, vote_to_int, int_to_vote
-
-def is_one_swap_distance(vote1: tuple, vote2: tuple) -> bool:
-    """
-    Check if two votes differ by exactly one adjacent swap.
-
-    Args:
-        vote1, vote2: Tuples representing votes (permutations)
-
-    Returns:
-        True if votes differ by exactly one adjacent swap
-    """
-    if len(vote1) != len(vote2):
-        return False
-
-    differences = []
-    for i in range(len(vote1)):
-        if vote1[i] != vote2[i]:
-            differences.append(i)
-
-    # Must have exactly 2 differences
-    if len(differences) != 2:
-        return False
-
-    # Differences must be adjacent positions
-    pos1, pos2 = differences
-    if abs(pos1 - pos2) != 1:
-        return False
-
-    # Elements at different positions must be swapped
-    return vote1[pos1] == vote2[pos2] and vote1[pos2] == vote2[pos1]
-
-def save_optimal_nodes_results(
-        results: List[Dict],
-        num_candidates: int,
-        method_name):
-    """
-    Save optimal nodes results to CSV file.
-
-    Args:
-        results: List of dictionaries containing results for each domain size
-        num_candidates: Number of candidates used
-    """
-    # Create data directory if it doesn't exist
-    os.makedirs('data/optimal_nodes', exist_ok=True)
-
-    csv_filename = f'data/optimal_nodes/{method_name}_m{num_candidates}.csv'
-
-    with open(csv_filename, 'w', newline='') as csvfile:
-        fieldnames = ['domain_size',
-                      'total_cost',
-                      'optimal_nodes_int',
-                     'optimal_nodes_votes']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-        writer.writeheader()
-        for result in results:
-            writer.writerow(result)
-
-    print(f"Results saved to {csv_filename}")
-
 def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
-                                               max_iterations: int = 10000,
-                                               initial_temp: float = 100.0,
+                                               max_iterations: int = 100000,
+                                               initial_temp: float = 1000.0,
                                                cooling_rate: float = 0.9) -> Tuple[List[int], int]:
     """
     Find facilities using simulated annealing to approximate optimal solution.
-    Optimized version using numpy for faster computations.
-
-    Args:
-        graph: NetworkX graph
-        m: Number of facilities to place
-        max_iterations: Maximum number of iterations
-        initial_temp: Initial temperature for annealing
-        cooling_rate: Rate at which temperature decreases
-
-    Returns:
-        Tuple of (facility_nodes, total_cost)
+    Fixed to use consistent cost calculation.
     """
     nodes = list(graph.nodes())
     n = len(nodes)
 
-    if m > n:
-        return nodes, compute_total_cost(graph, set(nodes))
-    # Precompute all pairwise distances as numpy array for faster access
-    node_to_idx = {node: i for i, node in enumerate(nodes)}
-    distance_matrix = np.full((n, n), np.inf)
+    if m >= n:
+        return nodes, 0
+    if m <= 0:
+        return [], compute_total_cost(graph, set())
 
-    for node in nodes:
-        distances = nx.single_source_shortest_path_length(graph, node)
-        node_idx = node_to_idx[node]
-        for target, dist in distances.items():
-            target_idx = node_to_idx[target]
-            distance_matrix[node_idx, target_idx] = dist
-    # Initialize with random solution
-    current_facilities_idx = np.random.choice(n, size=m, replace=False)
-    current_cost = compute_total_cost_numpy(distance_matrix, current_facilities_idx)
-    best_facilities_idx = current_facilities_idx.copy()
+    # Start with greedy solution instead of random
+    try:
+        greedy_facilities, greedy_cost = find_optimal_facilities_greedy(graph, m)
+        current_facilities = greedy_facilities
+        print(f"SA starting with greedy solution: cost={greedy_cost}")
+    except:
+        # Fallback to random if greedy fails
+        current_facilities = random.sample(nodes, m)
+
+    # Use consistent graph-based cost calculation throughout
+    current_cost = compute_total_cost(graph, set(current_facilities))
+    best_facilities = current_facilities.copy()
     best_cost = current_cost
 
     temperature = initial_temp
+    temp_update_freq = max(1, max_iterations // 10000)
 
-    # Pre-allocate arrays for efficiency
-    available_nodes = np.arange(n)
-
-    # Cooling schedule - update temperature less frequently for efficiency
-    temp_update_freq = max(1, max_iterations // 1000)
+    improvements = 0
+    stagnation_counter = 0
+    last_improvement = 0
 
     for iteration in range(max_iterations):
-        # print(iteration)
         # Generate neighbor solution by replacing one facility
-        new_facilities_idx = current_facilities_idx.copy()
+        new_facilities = current_facilities.copy()
 
         # Get available nodes (not currently facilities)
-        facility_mask = np.zeros(n, dtype=bool)
-        facility_mask[current_facilities_idx] = True
-        available_idx = available_nodes[~facility_mask]
+        available_nodes = [node for node in nodes if node not in current_facilities]
 
-        if len(available_idx) > 0:
+        if len(available_nodes) > 0:
             # Randomly select facility to remove and node to add
-            facility_to_remove_pos = np.random.randint(m)
-            node_to_add_idx = np.random.choice(available_idx)
+            facility_to_remove_idx = random.randint(0, len(current_facilities) - 1)
+            node_to_add = random.choice(available_nodes)
 
-            new_facilities_idx[facility_to_remove_pos] = node_to_add_idx
+            new_facilities[facility_to_remove_idx] = node_to_add
 
-            new_cost = compute_total_cost_numpy(distance_matrix, new_facilities_idx)
+            # Use consistent graph-based cost calculation
+            new_cost = compute_total_cost(graph, set(new_facilities))
 
             # Accept or reject the new solution
             cost_diff = new_cost - current_cost
 
-            if cost_diff < 0 or np.random.random() < np.exp(-cost_diff / temperature):
-                current_facilities_idx = new_facilities_idx
+            if cost_diff < 0:
+                accept = True
+                improvements += 1
+                stagnation_counter = 0
+                last_improvement = iteration
+            elif temperature > 1e-10:
+                try:
+                    prob = math.exp(-cost_diff / temperature)
+                    accept = random.random() < prob
+                except (OverflowError, FloatingPointError):
+                    accept = False
+            else:
+                accept = False
+
+            if accept:
+                current_facilities = new_facilities
                 current_cost = new_cost
 
                 # Update best solution if improved
                 if current_cost < best_cost:
-                    best_facilities_idx = current_facilities_idx.copy()
+                    best_facilities = current_facilities.copy()
                     best_cost = current_cost
+                    print(f"SA improvement at iteration {iteration}: cost={best_cost}")
+            else:
+                stagnation_counter += 1
 
-        # Cool down temperature (less frequently for efficiency)
+        # Cool down temperature
         if iteration % temp_update_freq == 0:
             temperature *= cooling_rate
 
-            # Early stopping if temperature is very low
-            if temperature < 0.01:
-                print(f"Early stopping at iteration {iteration}")
-                break
+        # Early stopping conditions
+        if temperature < 1e-10:
+            print(f"SA stopped due to low temperature at iteration {iteration}")
+            break
 
-    # Convert back to original node indices
-    best_facilities = [nodes[idx] for idx in best_facilities_idx]
-    return best_facilities, int(best_cost)
+        if stagnation_counter > max_iterations // 10:
+            print(f"SA stopped due to stagnation at iteration {iteration}")
+            break
+
+    # Verify the final cost (should match best_cost)
+    final_cost = compute_total_cost(graph, set(best_facilities))
+
+    if final_cost != best_cost:
+        print(f"WARNING: SA cost mismatch! best_cost={best_cost}, final_cost={final_cost}")
+        # Use the verified cost
+        best_cost = final_cost
+
+    print(f"SA final result for m={m}: cost={best_cost}, improvements={improvements}, last_improvement at iteration {last_improvement}")
+
+    return best_facilities, best_cost
+
+
+def find_optimal_facilities_sampled_simulated_annealing(
+    m_candidates: int,
+    m_facilities: int,
+    max_iterations: int = 10000,
+    initial_temp: float = 100.0,
+    cooling_rate: float = 0.9,
+    num_samples: int = 100
+) -> Tuple[List[tuple], int]:
+    """
+    Simulated annealing using sampling instead of creating the full graph.
+    Optimized to avoid generating all possible votes.
+    """
+    from src.diversity.sampling import outer_diversity_sampling, sample_impartial_culture
+
+    if m_facilities <= 0:
+        return [], float('inf')
+
+    # Initialize with random solution (vote tuples) - no need for all_votes
+    current_facilities_votes = []
+    for _ in range(m_facilities):
+        candidates = list(range(m_candidates))
+        random.shuffle(candidates)
+        current_facilities_votes.append(tuple(candidates))
+
+    # Compute initial cost using sampling
+    current_cost, sampled_size = outer_diversity_sampling(current_facilities_votes, num_samples)
+
+    best_facilities_votes = current_facilities_votes.copy()
+    best_cost = current_cost
+
+    temperature = initial_temp
+    temp_update_freq = max(1, max_iterations // 1000)
+
+    improvements = 0
+    last_improvement = 0
+
+    print(f"Sampled SA starting: cost={current_cost}, facilities={len(current_facilities_votes)}")
+
+    for iteration in range(max_iterations):
+        # Generate neighbor solution by replacing one facility with a random vote
+        new_facilities_votes = current_facilities_votes.copy()
+
+        # Generate a new random vote instead of picking from all_votes
+        facility_to_replace_idx = random.randint(0, len(current_facilities_votes) - 1)
+        candidates = list(range(m_candidates))
+        random.shuffle(candidates)
+        new_vote = tuple(candidates)
+
+        # Make sure the new vote is different from existing facilities
+        max_attempts = 10
+        attempts = 0
+        while new_vote in current_facilities_votes and attempts < max_attempts:
+            random.shuffle(candidates)
+            new_vote = tuple(candidates)
+            attempts += 1
+
+        new_facilities_votes[facility_to_replace_idx] = new_vote
+
+        # Compute cost using sampling
+        new_cost, sampled_size = outer_diversity_sampling(new_facilities_votes, num_samples)
+
+        # Accept or reject the new solution
+        cost_diff = new_cost - current_cost
+
+        if cost_diff < 0:
+            accept = True
+            improvements += 1
+            last_improvement = iteration
+        elif temperature > 1e-10:
+            try:
+                prob = math.exp(-cost_diff / temperature)
+                accept = random.random() < prob
+            except (OverflowError, FloatingPointError):
+                accept = False
+        else:
+            accept = False
+
+        if accept:
+            current_facilities_votes = new_facilities_votes
+            current_cost = new_cost
+
+            # Update best solution if improved
+            if current_cost < best_cost:
+                best_facilities_votes = current_facilities_votes.copy()
+                best_cost = current_cost
+                print(f"Sampled SA improvement at iteration {iteration}: cost={best_cost}")
+
+        # Cool down temperature
+        if iteration % temp_update_freq == 0:
+            temperature *= cooling_rate
+
+        # Early stopping conditions
+        if temperature < 1e-10:
+            print(f"Sampled SA stopped due to low temperature at iteration {iteration}")
+            break
+
+    print(f"Sampled SA final result for m={m_facilities}: cost={best_cost}, improvements={improvements}, last_improvement at iteration {last_improvement}")
+
+    print("sampled size", sampled_size)
+    # Scale cost to represent full space (estimate)
+    scaled_cost = best_cost * math.factorial(m_candidates) / sampled_size
+
+    return best_facilities_votes, int(scaled_cost)
+
 
 def compute_total_cost_numpy(distance_matrix: np.ndarray, facilities_idx: np.ndarray) -> float:
     """
     Compute total cost efficiently using numpy operations.
-
-    Args:
-        distance_matrix: n x n matrix of distances between all node pairs
-        facilities_idx: Array of facility indices
-
-    Returns:
-        Total cost (sum of distances from each node to closest facility)
     """
     if len(facilities_idx) == 0:
         return np.inf
@@ -587,7 +641,7 @@ def compute_total_cost_numpy(distance_matrix: np.ndarray, facilities_idx: np.nda
     # Find minimum distance from each node to any facility
     min_distances = np.min(facility_distances, axis=1)
 
-    return np.sum(min_distances)
+    return float(np.sum(min_distances))
 
 def find_optimal_facilities_greedy_ilp(
         graph: nx.Graph, m: int, previous_nodes) -> Tuple[List[int], int]:
@@ -877,9 +931,11 @@ def swap_distance(vote1: tuple, vote2: tuple) -> int:
 def compute_optimal_nodes(num_candidates, domain_sizes, method_name):
     results = []
 
-    print("create a graph")
-    vote_graph, vote_to_int, int_to_vote = create_vote_swap_graph(num_candidates)
-    print("graph created")
+    if method_name not in ['smpl_sa']:
+        print("create a graph")
+        vote_graph, vote_to_int, int_to_vote = create_vote_swap_graph(num_candidates)
+        print("graph created")
+
 
     previous_nodes = []
 
@@ -901,24 +957,37 @@ def compute_optimal_nodes(num_candidates, domain_sizes, method_name):
 
         elif method_name == 'sa':
             optimal_nodes, total_cost = find_optimal_facilities_simulated_annealing(
-                vote_graph, domain_size, max_iterations=10000)
+                vote_graph, domain_size, max_iterations=1000)  # More iterations for better results
+        elif method_name == 'smpl_sa':
+            optimal_nodes_votes, total_cost = find_optimal_facilities_sampled_simulated_annealing(
+                num_candidates, domain_size, max_iterations=1000, num_samples=1000)
+            optimal_nodes = []  # Empty since we work directly with votes
+        elif method_name == 'bf':
+            optimal_nodes, total_cost = find_optimal_facilities_bruteforce(
+                                                vote_graph, domain_size)
         else:
             raise ValueError(f"Unknown method: {method_name}")
 
-        previous_nodes = optimal_nodes
-
-        # Convert results for consistency
-        if method_name == 'sa':
-            vote_to_int, int_to_vote = create_vote_integer_mapping(num_candidates)
-
         # Store results
-        result = {
-            'domain_size': domain_size,
-            'total_cost': total_cost,
-            'optimal_nodes_int': str(optimal_nodes),
-            'optimal_nodes_votes': str([int_to_vote[f] for f in optimal_nodes]),
-        }
+        if method_name == 'smpl_sa':
+            result = {
+                'domain_size': domain_size,
+                'total_cost': total_cost,
+                'optimal_nodes_int': str([]),
+                'optimal_nodes_votes': str(optimal_nodes_votes),
+            }
+            previous_nodes = []  # Reset for sampled SA since we don't use graph nodes
+        else:
+            result = {
+                'domain_size': domain_size,
+                'total_cost': total_cost,
+                'optimal_nodes_int': str(optimal_nodes),
+                'optimal_nodes_votes': str([int_to_vote[f] for f in optimal_nodes]),
+            }
+            previous_nodes = optimal_nodes
+
         results.append(result)
+        print(f"  Result: {method_name} found cost={total_cost} for domain_size={domain_size}")
 
     # Save all results to file
     save_optimal_nodes_results(results, num_candidates, method_name)
@@ -1017,16 +1086,18 @@ def plot_optimal_nodes_results(
     # Calculate and print approximation ratios
     if 'ilp' in all_results:
         ilp_costs = {result['domain_size']: result['total_cost'] for result in all_results['ilp']}
+        optimal_diversity = [1 - tc / normalization(num_candidates) for tc in ilp_costs.values()]
 
         for method in methods:
             if method != 'ilp' and method in all_results:
                 method_costs = {result['domain_size']: result['total_cost'] for result in all_results[method]}
+                outer_diversity = [1 - tc / normalization(num_candidates) for tc in method_costs.values()]
 
                 # Calculate approximation ratios for common domain sizes
                 ratios = []
                 for domain_size in ilp_costs:
                     if domain_size in method_costs and ilp_costs[domain_size] > 0:
-                        ratio = method_costs[domain_size] / ilp_costs[domain_size]
+                        ratio = outer_diversity[domain_size] / optimal_diversity[domain_size]
                         ratios.append(ratio)
 
                 if ratios:
@@ -1123,3 +1194,91 @@ def plot_optimal_nodes_results(
     plt.savefig(f'img/optimal_nodes/outer_diversity_{num_candidates}.png', dpi=200, bbox_inches='tight')
     plt.show()
 
+def create_vote_swap_graph(m: int) -> Tuple[nx.Graph, Dict[tuple, int], Dict[int, tuple]]:
+    """
+    Create a graph representing all possible votes with edges between votes
+    that are at distance of one swap (adjacent transposition).
+
+    Args:
+        m: Number of candidates
+
+    Returns:
+        Tuple of (graph, vote_to_int_mapping, int_to_vote_mapping)
+    """
+    from itertools import permutations
+
+    candidates = list(range(m))
+    all_votes = list(permutations(candidates))
+
+    # Create bidirectional mappings
+    vote_to_int, int_to_vote = create_vote_integer_mapping(m)
+
+    # Create graph with integer node IDs
+    graph = nx.Graph()
+    graph.add_nodes_from(range(len(all_votes)))
+
+    # Add edges between votes that differ by exactly one adjacent swap
+    for i, vote1 in enumerate(all_votes):
+        for j, vote2 in enumerate(all_votes):
+            if i < j:  # Avoid duplicate edges since graph is undirected
+                if is_one_swap_distance(vote1, vote2):
+                    graph.add_edge(i, j)
+
+    print(f"Created vote swap graph with {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges")
+    return graph, vote_to_int, int_to_vote
+
+def is_one_swap_distance(vote1: tuple, vote2: tuple) -> bool:
+    """
+    Check if two votes differ by exactly one adjacent swap.
+
+    Args:
+        vote1, vote2: Tuples representing permutations
+
+    Returns:
+        True if votes differ by exactly one adjacent transposition
+    """
+    if len(vote1) != len(vote2):
+        return False
+
+    differences = []
+    for i in range(len(vote1)):
+        if vote1[i] != vote2[i]:
+            differences.append(i)
+
+    # Must have exactly 2 differences
+    if len(differences) != 2:
+        return False
+
+    pos1, pos2 = differences[0], differences[1]
+
+    # Check if positions are adjacent
+    if abs(pos1 - pos2) != 1:
+        return False
+
+    # Check if elements are swapped
+    return vote1[pos1] == vote2[pos2] and vote1[pos2] == vote2[pos1]
+
+def save_optimal_nodes_results(results: List[Dict], num_candidates: int, method_name: str):
+    """
+    Save optimal nodes results to CSV file.
+
+    Args:
+        results: List of result dictionaries
+        num_candidates: Number of candidates used
+        method_name: Method name for filename
+    """
+    # Create directory if it doesn't exist
+    os.makedirs('data/optimal_nodes', exist_ok=True)
+
+    csv_filename = f'data/optimal_nodes/{method_name}_m{num_candidates}.csv'
+
+    with open(csv_filename, 'w', newline='') as csvfile:
+        if results:
+            fieldnames = ['domain_size', 'total_cost', 'optimal_nodes_int', 'optimal_nodes_votes']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for result in results:
+                writer.writerow(result)
+
+    print(f"Saved {len(results)} results to {csv_filename}")
