@@ -341,7 +341,6 @@ def find_optimal_ilp(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
     # Create model
     model = gp.Model("compact_facility_location")
     model.setParam("OutputFlag", 0)
-    model.setParam("TimeLimit", 3600)  # 1 hour time limit
     model.setParam("MIPGap", 0.0)      # Require optimal solution
     model.setParam("Threads", 0)       # Use all threads
 
