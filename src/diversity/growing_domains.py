@@ -28,8 +28,7 @@ domains = {
 
 
 def load_domain_size_csv(num_candidates):
-    csv_filename = f'data/domain_size_m{num_candidates}.csv'
-
+    csv_filename = f'data/domain_size/domain_size_m{num_candidates}.csv'
     size_data = {}
     with open(csv_filename, 'r', newline='') as csvfile:
         reader = csv.reader(csvfile)
@@ -39,7 +38,6 @@ def load_domain_size_csv(num_candidates):
             domain_name = row[0]
             sizes = [int(size) for size in row[1:]]
             size_data[domain_name] = sizes
-
     return size_data
 
 

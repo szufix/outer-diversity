@@ -1,4 +1,3 @@
-
 import matplotlib.pyplot as plt
 from src.print_utils import *
 from src.diversity.diversity_utils import *
@@ -44,23 +43,20 @@ def plot_domain_size_increase(base, num_candidates) -> None:
     max_num_swaps = get_max_num_swaps(num_candidates)
     x_range = list(range(0, max_num_swaps + 1))
 
-    # Calculate the increase in domain size
-    size_increase = compute_balls_increase(size)
-
     plt.figure(figsize=(6.4, 4.8))
 
     for name in base:
         if name in size:
-            plt.plot(x_range[1:],  # Skip the first x_range value for increase
-                     size_increase[name],
+            size_increase = compute_balls_increase(size[name])
+            plt.plot(x_range[1:],
+                     size_increase,
                      label=LABEL[name],
                      marker=MARKER[name],
                      color=COLOR[name])
         else:
             print(f"Warning: {name} not found in the CSV data.")
-    # add text labels on x axis only for 1,2,3,4,5
-    plt.xticks(x_range[1:], fontsize=16)  # Skip the first value for increase
 
+    plt.xticks(x_range[1:], fontsize=16)
     plt.xticks(fontsize=16)
     plt.yticks(fontsize=16)
     plt.xlabel('Number of swaps', fontsize=22)
@@ -78,31 +74,15 @@ def print_domain_diversity(base, candidate_range):
     diversity_data = {}
     for num_candidates in candidate_range:
         size = load_domain_size_csv(num_candidates)
-
-        max_num_swaps = get_max_num_swaps(num_candidates)
-        x_range = list(range(0, max_num_swaps + 1))
-
-        # Calculate the increase in domain size
-        size_increase = compute_balls_increase(size)
-
         diversity_data[num_candidates] = {}
 
         for name in base:
-            if name not in size_increase:
+            if name not in size:
                 print(f"Warning: {name} not found in the CSV data.")
                 return
 
-            total_diversity = 0
-            # Calculate total diversity across all domains
-            # which is equal to 1*[0] + 2*[1] + 3*[2] + 4*[3] + 5*[4]
-            for i in range(len(x_range)-1):
-                total_diversity += (i+1) * size_increase[name][i]
-                print(i, total_diversity)
-
-            # print(total_diversity, normalization(num_candidates))
-            total_diversity /= normalization(num_candidates)
-            total_diversity = 1 - total_diversity
-
+            size_increase = compute_balls_increase(size[name])
+            total_diversity = outer_diversity_from_balls_increase(size_increase, num_candidates)
             diversity_data[num_candidates][name] = total_diversity
 
     # Sort base by diversity values in the first column
@@ -133,13 +113,11 @@ def print_domain_diversity(base, candidate_range):
     print("\\end{tabular}")
 
 
-
-
 if __name__ == "__main__":
 
     base = [
         # 'euclidean_3d',
-        # 'euclidean_2d',
+        'euclidean_2d',
         # 'spoc',
         # 'sp_double_forked',
         # 'caterpillar',
@@ -151,14 +129,12 @@ if __name__ == "__main__":
         'single_vote',
     ]
 
-    candidate_range = [3,4,5,6]
+    candidate_range = [5]
 
-    for num_candidates in candidate_range:
-        compute_domain_balls(base, num_candidates)
+    # for num_candidates in candidate_range:
+    #     compute_domain_balls(base, num_candidates)
 
         # plot_domain_size_total(base, num_candidates)
         # plot_domain_size_increase(base, num_candidates)
 
     print_domain_diversity(base, candidate_range)
-
-

@@ -79,8 +79,8 @@ def outer_diversity_sampling(domain, num_samples: int = 100) -> int:
         raise ValueError("All votes in domain must have the same length")
 
     # Sample votes from Impartial Culture
-    # sampled_votes = sample_impartial_culture(num_candidates, num_samples)
-    sampled_votes = spread_permutations(num_candidates, num_samples)
+    sampled_votes = sample_impartial_culture(num_candidates, num_samples)
+    # sampled_votes = spread_permutations(num_candidates, num_samples)
 
     sampled_potes = votes_to_potes(sampled_votes)
 
