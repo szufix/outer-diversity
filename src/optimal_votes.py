@@ -236,7 +236,7 @@ def find_optimal_facilities_milp_approx(graph: nx.Graph, m: int) -> Tuple[List[i
     model.setParam('MIPGap', 0.01)     # Allow 1% optimality gap for speed
     model.setParam('TimeLimit', 300)   # 5 minute time limit
     model.setParam('Cuts', 2)          # Aggressive cuts
-    model.setParam('Heuristics', 0.25)  # Spend 20% time on heuristics
+    model.setParam('Heuristics', 0.2)  # Spend 20% time on heuristics
     model.setParam('MIPFocus', 1)      # Focus on finding feasible solutions quickly
 
     # Decision variables
@@ -343,6 +343,9 @@ def find_optimal_ilp(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
     model.setParam("OutputFlag", 0)
     model.setParam("MIPGap", 0.0)      # Require optimal solution
     model.setParam("Threads", 0)       # Use all threads
+
+    model.setParam('Cuts', 2)          # Aggressive cuts
+    model.setParam('Heuristics', 0.2)  # Spend 20% time on heuristics
 
     # Decision variables
     x = model.addVars(nodes, vtype=GRB.BINARY, name="facility")
