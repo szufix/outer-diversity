@@ -11,36 +11,36 @@ from time import time
 if __name__ == "__main__":
 
     methods = [
-        # 'ilp',  # Use individual computation for ILP
-        'ilp_fast',
-        'greedy_ilp',
-        'sa',
+        'ilp',  # Use individual computation for ILP
+        # 'ilp_fast',
+        # 'greedy_ilp',
+        # 'sa',
         # 'smpl_sa'
     ]
 
     # num_candidates = 4
     # domain_sizes = range(1,24+1)
 
-    num_candidates = 5
-    domain_sizes = range(1,120+1)
+    # num_candidates = 5
+    # domain_sizes = range(1,120+1)
 
-    # num_candidates = 6
-    # domain_sizes = range(1,5+1)
+    num_candidates = 6
+    domain_sizes = range(1,3+1)
 
-    # For ILP: check if individual results exist and merge them
-    ilp_available, ilp_missing = check_individual_results_status(num_candidates, 'ilp', list(domain_sizes))
-    if ilp_available:
-        print(f"Found {len(ilp_available)} individual ILP results, merging...")
-        merge_individual_results(num_candidates, 'ilp', ilp_available)
-        methods.append('ilp')  # Add ILP to plotting methods
-    else:
-        print("No individual ILP results found. Use exp_3_optimal_votes_individual.py to compute them.")
+    # # For ILP: check if individual results exist and merge them
+    # ilp_available, ilp_missing = check_individual_results_status(num_candidates, 'ilp', list(domain_sizes))
+    # if ilp_available:
+    #     print(f"Found {len(ilp_available)} individual ILP results, merging...")
+    #     merge_individual_results(num_candidates, 'ilp', ilp_available)
+    #     methods.append('ilp')  # Add ILP to plotting methods
+    # else:
+    #     print("No individual ILP results found. Use exp_3_optimal_votes_individual.py to compute them.")
 
     x = []
     for method_name in methods:
-        if method_name == 'ilp':
-            print(f'Method: {method_name} (using merged results)')
-            continue  # Skip computation, already merged
+        # if method_name == 'ilp':
+        #     print(f'Method: {method_name} (using merged results)')
+        #     continue  # Skip computation, already merged
 
         print('Method:', method_name)
         start = time()

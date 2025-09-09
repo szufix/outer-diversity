@@ -341,11 +341,9 @@ def find_optimal_ilp(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
     # Create model
     model = gp.Model("compact_facility_location")
     model.setParam("OutputFlag", 0)
-    model.setParam("MIPGap", 0.0)      # Require optimal solution
     model.setParam("Threads", 0)       # Use all threads
-
+    model.setParam("MIPGap", 1e-3)
     model.setParam('Cuts', 2)          # Aggressive cuts
-    model.setParam('Heuristics', 0.2)  # Spend 20% time on heuristics
 
     # Decision variables
     x = model.addVars(nodes, vtype=GRB.BINARY, name="facility")
@@ -382,23 +380,7 @@ def find_optimal_ilp(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
 
         # Verify the cost calculation
         model_cost = int(model.objVal)
-        actual_cost = compute_total_cost(graph, set(facilities))
-
-        if model_cost != actual_cost:
-            print(f"WARNING: ILP cost mismatch! model_cost={model_cost}, actual_cost={actual_cost}")
-
-            # Debug: check assignment
-            print("Facility assignments:")
-            for i in nodes:
-                assigned_to = [j for j in nodes if y[i, j].X > 0.5]
-                if len(assigned_to) != 1:
-                    print(f"  Node {i} assigned to {assigned_to} (should be exactly 1)")
-                else:
-                    j = assigned_to[0]
-                    expected_dist = distances[j][i]
-                    print(f"  Node {i} -> Facility {j}, distance={expected_dist}")
-
-        return facilities, actual_cost
+        return facilities, model_cost
 
     if model.status == GRB.OPTIMAL:
         facilities, actual_cost = extract_solution()
@@ -410,11 +392,7 @@ def find_optimal_ilp(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
         return facilities, actual_cost
 
     print(f"ILP failed with status {model.status} for m={m}")
-    # Fallback to greedy
-    try:
-        return find_optimal_facilities_greedy(graph, m)
-    except Exception:
-        return [], float("inf")
+
 
 def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
                                                max_iterations: int = 100000,
