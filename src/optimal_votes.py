@@ -14,6 +14,7 @@ import numpy as np
 
 from src.diversity.diversity_utils import normalization
 
+from src.diversity.sampling import outer_diversity_sampling, sample_impartial_culture
 
 import networkx as nx
 import gurobipy as gp
@@ -515,8 +516,6 @@ def find_optimal_facilities_sampled_simulated_annealing(
     Simulated annealing using sampling instead of creating the full graph.
     Optimized to avoid generating all possible votes.
     """
-    from src.diversity.sampling import outer_diversity_sampling, sample_impartial_culture
-
     if m_facilities <= 0:
         return [], float('inf')
 

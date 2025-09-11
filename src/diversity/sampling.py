@@ -2,7 +2,7 @@ import itertools
 import random
 
 from src.diversity.diversity_utils import *
-
+from src.diversity.single_peaked import distance_vote_single_peaked_domain
 
 def kth_permutation(elements, k):
     """Return the k-th permutation (0-indexed) of the given list using factorial number system."""
@@ -56,7 +56,10 @@ def sample_impartial_culture(num_candidates: int, num_samples: int):
     return [tuple(random.sample(range(num_candidates), num_candidates)) for _ in range(num_samples)]
 
 
-def outer_diversity_sampling(domain, num_samples: int = 100) -> int:
+def outer_diversity_sampling(
+        domain,
+        num_samples: int = 100,
+):
     """
     Compute outer diversity by sampling from Impartial Culture and measuring
     swap distances to the closest vote in the domain.
@@ -78,9 +81,8 @@ def outer_diversity_sampling(domain, num_samples: int = 100) -> int:
     if not all(len(vote) == num_candidates for vote in domain):
         raise ValueError("All votes in domain must have the same length")
 
-    # Sample votes from Impartial Culture
-    sampled_votes = sample_impartial_culture(num_candidates, num_samples)
-    # sampled_votes = spread_permutations(num_candidates, num_samples)
+    # sampled_votes = sample_impartial_culture(num_candidates, num_samples)
+    sampled_votes = spread_permutations(num_candidates, num_samples)
 
     sampled_potes = votes_to_potes(sampled_votes)
 
@@ -88,14 +90,37 @@ def outer_diversity_sampling(domain, num_samples: int = 100) -> int:
 
     total_distance = 0
 
+    distances = []
     for sampled_pote in sampled_potes:
         # Find minimum distance to any vote in the domain
-        min_distance = float('inf')
 
+        tmp_distances = []
         for domain_pote in domain_potes:
             distance = swap_distance_between_potes(sampled_pote, domain_pote, num_candidates)
-            min_distance = min(min_distance, distance)
+            tmp_distances.append(distance)
+        distances.append(int(min(tmp_distances)))
 
-        total_distance += min_distance
+    total_distance = sum(distances)
+
+    return total_distance, len(sampled_votes)
+
+
+def outer_diversity_sampling_for_structered_domains(
+        domain_name: str,
+        num_candidates: int,
+        num_samples: int,
+):
+    # sampled_votes = sample_impartial_culture(num_candidates, num_samples)
+    sampled_votes = spread_permutations(num_candidates, num_samples)
+
+    total_distance = 0
+    distances = []
+    for vote in sampled_votes:
+
+        if domain_name == 'sp':
+            distance = distance_vote_single_peaked_domain(vote)
+        distances.append(distance)
+
+    total_distance = sum(distances)
 
     return total_distance, len(sampled_votes)
