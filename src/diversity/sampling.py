@@ -1,8 +1,15 @@
 import itertools
+import math
 import random
 
 from src.diversity.diversity_utils import *
-from src.diversity.single_peaked import distance_vote_single_peaked_domain
+from src.diversity.single_peaked import (
+    distance_vote_single_peaked_domain,
+    distance_vote_single_peaked_on_circle_domain
+)
+from src.diversity.single_crossing import distance_vote_single_crossing_domain
+
+from src.domain.domain import SC_Domain
 
 def kth_permutation(elements, k):
     """Return the k-th permutation (0-indexed) of the given list using factorial number system."""
@@ -81,8 +88,15 @@ def outer_diversity_sampling(
     if not all(len(vote) == num_candidates for vote in domain):
         raise ValueError("All votes in domain must have the same length")
 
-    # sampled_votes = sample_impartial_culture(num_candidates, num_samples)
-    sampled_votes = spread_permutations(num_candidates, num_samples)
+    # Check if num_samples is larger than num_candidates factorial
+    total_permutations = math.factorial(num_candidates)
+    if num_samples >= total_permutations:
+        # Use all permutations if samples >= total
+        sampled_votes = list(itertools.permutations(range(num_candidates)))
+    else:
+        # sampled_votes = spread_permutations(num_candidates, num_samples)
+        sampled_votes = sample_impartial_culture(num_candidates, num_samples)
+
 
     sampled_potes = votes_to_potes(sampled_votes)
 
@@ -96,31 +110,53 @@ def outer_diversity_sampling(
 
         tmp_distances = []
         for domain_pote in domain_potes:
-            distance = swap_distance_between_potes(sampled_pote, domain_pote, num_candidates)
+            distance = swap_distance_between_potes(sampled_pote, domain_pote)
             tmp_distances.append(distance)
         distances.append(int(min(tmp_distances)))
 
-    total_distance = sum(distances)
+    # Simplified normalization to avoid large factorials
+    total_distance = sum(distances) / len(distances) * 2 / math.comb(num_candidates, 2)
+    total_distance = 1 - total_distance
 
     return total_distance, len(sampled_votes)
 
 
 def outer_diversity_sampling_for_structered_domains(
         domain_name: str,
+        domain,
         num_candidates: int,
         num_samples: int,
 ):
-    # sampled_votes = sample_impartial_culture(num_candidates, num_samples)
-    sampled_votes = spread_permutations(num_candidates, num_samples)
 
-    total_distance = 0
+    # Check if num_samples is larger than num_candidates factorial
+    if num_candidates < 10 and num_samples >= math.factorial(num_candidates):
+        # Use all permutations if samples >= total
+        print("ALL", num_candidates)
+        sampled_votes = list(itertools.permutations(range(num_candidates)))
+    else:
+        # sampled_votes = spread_permutations(num_candidates, num_samples)
+        sampled_votes = sample_impartial_culture(num_candidates, num_samples)
+
     distances = []
+    if domain_name == 'sc':
+        # Precompute domain object for single-crossing distance
+        domain_obj = SC_Domain(domain)
+
     for vote in sampled_votes:
 
         if domain_name == 'sp':
             distance = distance_vote_single_peaked_domain(vote)
+        elif domain_name == 'spoc':
+            distance = distance_vote_single_peaked_on_circle_domain(vote)
+        elif domain_name == 'sc':
+            distance = distance_vote_single_crossing_domain(vote, domain, domain_obj)
+        else:
+            raise ValueError(f"Unknown domain name: {domain_name}")
+
         distances.append(distance)
 
-    total_distance = sum(distances)
+    # Simplified normalization to avoid large factorials
+    total_distance = sum(distances) / len(distances) * 2 / math.comb(num_candidates, 2)
+    total_distance = 1 - total_distance
 
     return total_distance, len(sampled_votes)

@@ -13,7 +13,7 @@ def get_vote_dists(election):
         distances = np.zeros([election.num_voters, election.num_voters])
         for v1 in range(election.num_voters):
             for v2 in range(v1 + 1, election.num_voters):
-                distances[v1][v2] = swap_distance_between_potes(potes[v1], potes[v2], election.num_candidates)
+                distances[v1][v2] = swap_distance_between_potes(potes[v1], potes[v2])
                 distances[v2][v1] = distances[v1][v2]
         election.vote_dists = distances
         return distances
@@ -184,8 +184,7 @@ def vote_domain_dists(election, domain):
     for v in range(election.num_voters):
         for u in range(len(domain)):
             distances[u][v] = swap_distance_between_potes(potes_votes[v],
-                                                          potes_domain[u],
-                                                          election.num_candidates)
+                                                          potes_domain[u])
     election.vote_dists = distances
     return distances
 

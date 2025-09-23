@@ -12,6 +12,8 @@ import random
 import math
 import numpy as np
 
+from src.diversity.sampling import spread_permutations
+
 from src.diversity.diversity_utils import normalization
 
 from src.diversity.sampling import outer_diversity_sampling, sample_impartial_culture
@@ -345,6 +347,7 @@ def find_optimal_ilp(graph: nx.Graph, m: int) -> Tuple[List[int], int]:
     model.setParam("Threads", 0)       # Use all threads
     model.setParam("MIPGap", 1e-3)
     model.setParam('Cuts', 2)          # Aggressive cuts
+    model.Params.TimeLimit = 48 * 60 * 60  # 172800 seconds
 
     # Decision variables
     x = model.addVars(nodes, vtype=GRB.BINARY, name="facility")
@@ -504,14 +507,16 @@ def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
     return best_facilities, best_cost
 
 
+
 def find_optimal_facilities_sampled_simulated_annealing(
     m_candidates: int,
     m_facilities: int,
     max_iterations: int = 10000,
     initial_temp: float = 100.0,
     cooling_rate: float = 0.9,
-    num_samples: int = 100
-) -> Tuple[List[tuple], int]:
+    num_samples: int = 100,
+    start_with: str = 'ic',
+):
     """
     Simulated annealing using sampling instead of creating the full graph.
     Optimized to avoid generating all possible votes.
@@ -521,16 +526,19 @@ def find_optimal_facilities_sampled_simulated_annealing(
 
     # Initialize with random solution (vote tuples) - no need for all_votes
     current_facilities_votes = []
-    for _ in range(m_facilities):
-        candidates = list(range(m_candidates))
-        random.shuffle(candidates)
-        current_facilities_votes.append(tuple(candidates))
+    if start_with == 'ic':
+        for _ in range(m_facilities):
+            candidates = list(range(m_candidates))
+            random.shuffle(candidates)
+            current_facilities_votes.append(tuple(candidates))
+    elif start_with == 'grid':
+        current_facilities_votes = spread_permutations(m_candidates, m_facilities)
 
     # Compute initial cost using sampling
-    current_cost, sampled_size = outer_diversity_sampling(current_facilities_votes, num_samples)
+    current_diversity, sampled_size = outer_diversity_sampling(current_facilities_votes, num_samples)
 
     best_facilities_votes = current_facilities_votes.copy()
-    best_cost = current_cost
+    max_diversity = current_diversity
 
     temperature = initial_temp
     temp_update_freq = max(1, max_iterations // 1000)
@@ -538,7 +546,7 @@ def find_optimal_facilities_sampled_simulated_annealing(
     improvements = 0
     last_improvement = 0
 
-    print(f"Sampled SA starting: cost={current_cost}, facilities={len(current_facilities_votes)}")
+    print(f"Sampled SA starting: cost={current_diversity}, facilities={len(current_facilities_votes)}")
 
     for iteration in range(max_iterations):
         # Generate neighbor solution by replacing one facility with a random vote
@@ -564,7 +572,7 @@ def find_optimal_facilities_sampled_simulated_annealing(
         new_cost, sampled_size = outer_diversity_sampling(new_facilities_votes, num_samples)
 
         # Accept or reject the new solution
-        cost_diff = new_cost - current_cost
+        cost_diff = new_cost - current_diversity
 
         if cost_diff < 0:
             accept = True
@@ -581,13 +589,13 @@ def find_optimal_facilities_sampled_simulated_annealing(
 
         if accept:
             current_facilities_votes = new_facilities_votes
-            current_cost = new_cost
+            current_diversity = new_cost
 
             # Update best solution if improved
-            if current_cost < best_cost:
+            if current_diversity > max_diversity:
                 best_facilities_votes = current_facilities_votes.copy()
-                best_cost = current_cost
-                print(f"Sampled SA improvement at iteration {iteration}: cost={best_cost}")
+                max_diversity = current_diversity
+                print(f"Sampled SA improvement at iteration {iteration}: cost={max_diversity}")
 
         # Cool down temperature
         if iteration % temp_update_freq == 0:
@@ -598,13 +606,10 @@ def find_optimal_facilities_sampled_simulated_annealing(
             print(f"Sampled SA stopped due to low temperature at iteration {iteration}")
             break
 
-    print(f"Sampled SA final result for m={m_facilities}: cost={best_cost}, improvements={improvements}, last_improvement at iteration {last_improvement}")
+    print(f"Sampled SA final result for m={m_facilities}: cost={max_diversity}, improvements={improvements}, last_improvement at iteration {last_improvement}")
 
-    print("sampled size", sampled_size)
-    # Scale cost to represent full space (estimate)
-    scaled_cost = best_cost * math.factorial(m_candidates) / sampled_size
 
-    return best_facilities_votes, int(scaled_cost)
+    return best_facilities_votes, max_diversity
 
 
 def compute_total_cost_numpy(distance_matrix: np.ndarray, facilities_idx: np.ndarray) -> float:
@@ -907,7 +912,7 @@ def swap_distance(vote1: tuple, vote2: tuple) -> int:
 
     return swaps
 
-def compute_optimal_nodes(num_candidates, domain_sizes, method_name):
+def compute_optimal_nodes(num_candidates, domain_sizes, method_name, start_with='ic'):
     results = []
 
     if method_name not in ['smpl_sa']:
@@ -939,7 +944,8 @@ def compute_optimal_nodes(num_candidates, domain_sizes, method_name):
                 vote_graph, domain_size, max_iterations=1000)  # More iterations for better results
         elif method_name == 'smpl_sa':
             optimal_nodes_votes, total_cost = find_optimal_facilities_sampled_simulated_annealing(
-                num_candidates, domain_size, max_iterations=1000, num_samples=1000)
+                num_candidates, domain_size, max_iterations=1000, num_samples=1000,
+                start_with=start_with)
             optimal_nodes = []  # Empty since we work directly with votes
         elif method_name == 'bf':
             optimal_nodes, total_cost = find_optimal_facilities_bruteforce(

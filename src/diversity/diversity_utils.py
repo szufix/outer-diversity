@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import itertools
 
 from src.domain.extenders import (
     extend_by_swaps
@@ -48,15 +49,27 @@ def outer_diversity_from_balls_increase(balls_increase, num_candidates):
     return total_diversity
 
 
-def swap_distance_between_potes(pote_1: list, pote_2: list, m : int) -> int:
-    """ Return: Swap distance between two potes """
+def swap_distance_between_potes(pote_1: list, pote_2: list) -> int:
+    """
+    Computes the swap distance between two potes (i.e. positional votes).
+
+    Parameters
+    ----------
+        pote_1 : list
+            First vector.
+        pote_2 : list
+            Second vector.
+    Returns
+    -------
+        int
+            Swap distance.
+    """
     swap_distance = 0
-    for a in range(m):
-        for b in range(m):
-            if (pote_1[a] < pote_1[b] and pote_2[a] >= pote_2[b]):
-                swap_distance += 0.5
-            if (pote_1[a] <= pote_1[b] and pote_2[a] > pote_2[b]):
-                swap_distance += 0.5
+    for i, j in itertools.combinations(pote_1, 2):
+        if (pote_1[i] > pote_1[j] and pote_2[i] < pote_2[j]) or (
+            pote_1[i] < pote_1[j] and pote_2[i] > pote_2[j]
+        ):
+            swap_distance += 1
     return swap_distance
 
 
