@@ -11,10 +11,9 @@ from time import time
 if __name__ == "__main__":
 
     methods = [
-        'ilp',  # Use individual computation for ILP
-        # 'ilp_fast',
+        # 'ilp',  # Use individual computation for ILP
         # 'greedy_ilp',
-        # 'sa',
+        'sa',
         # 'smpl_sa'
     ]
 
@@ -24,8 +23,11 @@ if __name__ == "__main__":
     # num_candidates = 5
     # domain_sizes = range(1,120+1)
 
-    num_candidates = 6
-    domain_sizes = range(1,3+1)
+    # num_candidates = 6
+    # domain_sizes = range(1,120+1)
+
+    num_candidates = 8
+    domain_sizes = range(1,10+1)
 
     # # For ILP: check if individual results exist and merge them
     # ilp_available, ilp_missing = check_individual_results_status(num_candidates, 'ilp', list(domain_sizes))
@@ -50,6 +52,4 @@ if __name__ == "__main__":
         x.append(end - start)
     print(x)
 
-    # Plot all methods including merged ILP results
-    plot_methods = [m for m in methods if m in ['ilp', 'ilp_fast', 'greedy_ilp', 'sa']]
-    plot_optimal_nodes_results(num_candidates, plot_methods, domain_sizes, with_structured_domains=False)
+    # plot_optimal_nodes_results(num_candidates, methods, domain_sizes, with_structured_domains=True)

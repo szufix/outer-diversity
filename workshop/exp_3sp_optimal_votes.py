@@ -72,6 +72,7 @@ def check_status():
     check_individual_results_status(num_candidates, method_name, domain_sizes)
 
 if __name__ == "__main__":
+
     if len(sys.argv) < 2:
         print("Available commands:")
         print("  python exp_3_optimal_votes_individual.py <num_candidates> <domain_size> <method_name>")

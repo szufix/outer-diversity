@@ -1221,9 +1221,10 @@ def plot_optimal_nodes_results(
     # Load results for each method
     all_results = {}
     for method in methods:
+        print(method)
         results = load_optimal_nodes_results(num_candidates, method)
         if results:
-            all_results[method] = results
+            all_results[method] = results[domain_sizes[0]-1:domain_sizes[-1]]
 
     if not all_results:
         print("No results to display.")
@@ -1268,10 +1269,9 @@ def plot_optimal_nodes_results(
     # Define colors and styles for each method
     method_styles = {
         'ilp': {'marker': 'o', 'linestyle': '-', 'color': 'black', 'label': 'ILP (Optimal)', 'linewidth': 3, 'markersize': 5},
-        'ilp_fast': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'LP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-        'sa': {'marker': 's', 'linestyle': '--', 'color': 'red', 'label': 'Simulated Annealing', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-        'greedy_ilp': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'Greedy ILP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-        'greedy_ilp_fast': {'marker': 'v', 'linestyle': '-.', 'color': 'orange', 'label': 'Greedy LP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8}
+        'greedy_ilp': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'Greedy ILP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+        'sa': {'marker': 's', 'linestyle': '--', 'color': 'red', 'label': 'SA', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+        'smpl_sa': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'Sampling SA', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
     }
 
     # Plot results for each method
@@ -1342,7 +1342,7 @@ def plot_optimal_nodes_results(
 
     plt.tight_layout()
 
-    plt.savefig(f'img/optimal_nodes/outer_diversity_{num_candidates}.png', dpi=200, bbox_inches='tight')
+    plt.savefig(f'images/optimal_nodes/outer_diversity_{num_candidates}.png', dpi=200, bbox_inches='tight')
     plt.show()
 
 def create_vote_swap_graph(m: int) -> Tuple[nx.Graph, Dict[tuple, int], Dict[int, tuple]]:

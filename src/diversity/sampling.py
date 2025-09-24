@@ -89,9 +89,9 @@ def outer_diversity_sampling(
         raise ValueError("All votes in domain must have the same length")
 
     # Check if num_samples is larger than num_candidates factorial
-    total_permutations = math.factorial(num_candidates)
-    if num_samples >= total_permutations:
+    if num_candidates < 10 and num_samples >= math.factorial(num_candidates):
         # Use all permutations if samples >= total
+        print("ALL", num_candidates)
         sampled_votes = list(itertools.permutations(range(num_candidates)))
     else:
         # sampled_votes = spread_permutations(num_candidates, num_samples)
@@ -101,8 +101,6 @@ def outer_diversity_sampling(
     sampled_potes = votes_to_potes(sampled_votes)
 
     domain_potes = votes_to_potes(domain)
-
-    total_distance = 0
 
     distances = []
     for sampled_pote in sampled_potes:

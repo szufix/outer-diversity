@@ -150,15 +150,14 @@ def import_diversity_comparison_results():
     return pd.read_csv(csv_path)
 
 
-
 if __name__ == "__main__":
-    candidate_range = range(2, 20+1)
-    num_samples = 1000
-    max_iterations = 1
+    candidate_range = range(2, 10+1)
+    num_samples = 100
+    max_iterations = 100
     from time import time
     start_time = time()
     compute_diversity_comparison_data(
-        candidate_range, num_samples, max_iterations, with_max=False)
+        candidate_range, num_samples, max_iterations, with_max=True)
     end_time = time()
     print(f"Computation time: {end_time - start_time} seconds")
-    plot_diversity_comparison(with_max=False)
+    plot_diversity_comparison(with_max=True)

@@ -8,7 +8,7 @@ from src.optimal_votes import (
 )
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Bayesian model for the resampling distribution.',
+    parser = argparse.ArgumentParser(description='...',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--method', type=str)
@@ -29,6 +29,5 @@ if __name__ == "__main__":
     num_candidates = args.m
     method_name = args.method
     domain_sizes = range(1,args.range+1)
-
 
     compute_optimal_nodes(num_candidates, domain_sizes, method_name)
