@@ -2,12 +2,12 @@ import csv
 import os
 from typing import List, Dict
 
-from max_diversity.bruteforce import find_optimal_facilities_bruteforce
-from max_diversity.ilp import find_optimal_ilp, find_optimal_facilities_milp_approx, \
+from src.max_diversity.bruteforce import find_optimal_facilities_bruteforce
+from src.max_diversity.ilp import find_optimal_ilp, find_optimal_facilities_milp_approx, \
     find_optimal_facilities_greedy_ilp, find_optimal_facilities_greedy_ilp_fast
-from max_diversity.simulated_annealing import find_optimal_facilities_simulated_annealing, \
+from src.max_diversity.simulated_annealing import find_optimal_facilities_simulated_annealing, \
     find_optimal_facilities_sampled_simulated_annealing
-from max_diversity.swap_graph import create_vote_swap_graph
+from src.max_diversity.swap_graph import create_vote_swap_graph
 
 
 def compute_optimal_nodes(

@@ -1,6 +1,6 @@
 import networkx as nx
 
-from max_diversity.utils import compute_total_cost
+from src.max_diversity.utils import compute_total_cost
 
 
 def find_optimal_facilities_bruteforce(graph: nx.Graph, m: int):

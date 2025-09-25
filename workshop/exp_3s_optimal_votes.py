@@ -21,6 +21,7 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+# nohup python -u exp_3s_optimal_votes.py --method sa --range 20 --m 5 --iter 10 --samples 100 > logs/exp_3s_optimal_votes_m5_sa.log &
 
 # Example usage
 if __name__ == "__main__":
