@@ -2,7 +2,6 @@ from src.max_diversity.main import compute_optimal_nodes
 from src.max_diversity.plot import plot_optimal_nodes_results
 from time import time
 
-from workshop.workshop import num_samples
 
 # Example usage
 if __name__ == "__main__":
@@ -11,7 +10,9 @@ if __name__ == "__main__":
         # 'ilp',  # Use individual computation for ILP
         # 'greedy_ilp',
         'sa',
-        # 'smpl_sa'
+        'smpl_sa'
+        # 'ic',
+        # 'smpl_ic'
     ]
 
     # num_candidates = 4
@@ -26,17 +27,9 @@ if __name__ == "__main__":
     num_candidates = 5
     domain_sizes = range(1,10+1)
 
-    num_iterations = 100
+    max_iterations = 100
     num_samples = 100
 
-    # # For ILP: check if individual results exist and merge them
-    # ilp_available, ilp_missing = check_individual_results_status(num_candidates, 'ilp', list(domain_sizes))
-    # if ilp_available:
-    #     print(f"Found {len(ilp_available)} individual ILP results, merging...")
-    #     merge_individual_results(num_candidates, 'ilp', ilp_available)
-    #     methods.append('ilp')  # Add ILP to plotting methods
-    # else:
-    #     print("No individual ILP results found. Use exp_3_optimal_votes_individual.py to compute them.")
 
     x = []
     for method_name in methods:
@@ -46,7 +39,8 @@ if __name__ == "__main__":
 
         print('Method:', method_name)
         start = time()
-        compute_optimal_nodes(num_candidates, domain_sizes, method_name)
+        compute_optimal_nodes(num_candidates, domain_sizes, method_name,
+                              num_samples=num_samples, max_iterations=max_iterations)
         end = time()
         print(f'Time taken: {end - start} seconds')
         x.append(end - start)

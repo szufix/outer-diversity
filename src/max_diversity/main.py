@@ -1,5 +1,6 @@
 import csv
 import os
+import math
 from typing import List, Dict
 
 from src.max_diversity.bruteforce import find_optimal_facilities_bruteforce
@@ -8,14 +9,15 @@ from src.max_diversity.ilp import find_optimal_ilp, find_optimal_facilities_milp
 from src.max_diversity.simulated_annealing import find_optimal_facilities_simulated_annealing, \
     find_optimal_facilities_sampled_simulated_annealing
 from src.max_diversity.swap_graph import create_vote_swap_graph
+from src.max_diversity.impartial_culture import diversity_for_ic, diversity_for_smpl_ic
 
 
 def compute_optimal_nodes(
         num_candidates,
         domain_sizes,
         method_name,
-        max_iterations,
-        num_samples,
+        max_iterations=None,
+        num_samples=None,
         start_with='ic'):
     import csv
     import os
@@ -37,6 +39,8 @@ def compute_optimal_nodes(
         print("create a graph")
         vote_graph, vote_to_int, int_to_vote = create_vote_swap_graph(num_candidates)
         print("graph created")
+
+
 
     previous_nodes = []
 
@@ -64,8 +68,15 @@ def compute_optimal_nodes(
                 start_with=start_with)
             optimal_nodes = []
 
-        # elif method_name == 'ic':
-        #     optimal_nodes, total_cost = diversity_for_ic(vote_graph, domain_size)
+        elif method_name == 'ic':
+            optimal_nodes, total_cost = diversity_for_ic(
+                vote_graph, domain_size)
+
+        elif method_name == 'smpl_ic':
+            optimal_nodes_votes, total_cost = diversity_for_smpl_ic(
+                num_candidates, domain_size, num_samples=num_samples)
+            optimal_nodes = []
+
 
         elif method_name == 'bf':
             optimal_nodes, total_cost = find_optimal_facilities_bruteforce(
@@ -74,7 +85,7 @@ def compute_optimal_nodes(
             raise ValueError(f"Unknown method: {method_name}")
 
         # Store results
-        if method_name == 'smpl_sa':
+        if method_name in ['smpl_sa', 'smpl_ic']:
             result = {
                 'domain_size': domain_size,
                 'total_cost': total_cost,
@@ -83,6 +94,9 @@ def compute_optimal_nodes(
             }
             previous_nodes = []  # Reset for sampled SA since we don't use graph nodes
         else:
+            n = len(vote_graph.nodes)
+            total_cost = 1 - total_cost / n * 2 / math.comb(num_candidates, 2)
+
             result = {
                 'domain_size': domain_size,
                 'total_cost': total_cost,
