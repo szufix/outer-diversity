@@ -4,8 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import csv
 import os
-from diversity import compute_outer_diversity
-from diversity.sampling import (
+from src.diversity.sampling import (
     outer_diversity_sampling,
     outer_diversity_sampling_for_structered_domains
 )

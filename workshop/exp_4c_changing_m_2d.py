@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from diversity.sampling import (
+from src.diversity.sampling import (
     outer_diversity_sampling_for_structered_domains
 )
 from src.domain.single_crossing import single_crossing_domain
