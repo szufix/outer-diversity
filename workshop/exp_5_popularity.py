@@ -1,32 +1,49 @@
 from src.domain.popularity import *
 from src.print_utils import *
 
-def get_global_popularity_bins(base, num_candidates):
-    min_pop = float('inf')
-    max_pop = float('-inf')
-    for name in base:
-        csv_path = f'data/popularity/{name}_m{num_candidates}.csv'
-        popularity, _ = import_popularity_from_csv(csv_path)
-        min_pop = min(min_pop, min(popularity))
-        max_pop = max(max_pop, max(popularity))
-    # Bin size = 3
-    bins = list(range((min_pop // 3) * 3, ((max_pop // 3) + 2) * 3, 3))
-    return bins
 
 
 def plot_popularity_histogram(popularity, m, name, img_path):
-    plt.figure(figsize=(8, 5))
-    plt.hist(popularity,
-             align="left",
-             rwidth=0.8,
-             color='tab:blue')
-    plt.xlabel("Popularity (number of L(C) votes closest to domain vote)", fontsize=16)
-    plt.ylabel("Number of Votes", fontsize=16)
-    plt.title(f"Histogram of Popularity (m={m}) for {LABEL[name]}", fontsize=18)
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=14)
+    import numpy as np
+    plt.figure(figsize=(8, 3))
+    min_pop = 0
+    max_pop = 1200
+    bin_size = 50
+    bins = np.arange(min_pop, max_pop + bin_size+1, bin_size)
+    # Ensure cut bin is strictly greater than last bin edge
+    popularity = np.array(popularity)
+
+    y_max = len(popularity)
+    plt.ylim(0 * y_max, y_max * 1)
+    yticks = [0, y_max * 0.25, y_max * 0.5, y_max * 0.75, y_max]
+    ytick_labels = ['0', '25%', '50%', '75%', '100%']
+    plt.yticks(yticks, ytick_labels)
+    plt.grid(axis='y', color='gray', alpha=0.6)  # Add pale horizontal lines
+
+    clipped_popularity = np.where(popularity > max_pop, max_pop+1, popularity)
+    print(clipped_popularity)
+    counts, bins, patches = plt.hist(clipped_popularity,
+                                     bins=bins,
+                                     align="mid",
+                                     rwidth=0.8,
+                                     color='tab:blue')
+    print(counts)
+    # Custom bin labels for ranges
+    bin_labels = [f"[{int(bins[i])},{int(bins[i+1]-1)}]" for i in range(len(bins)-2)] + [f"{max_pop}+"]
+    bin_centers = bins[:-1] + (np.diff(bins) / 2)
+    # Show only every 8th bin and the last bin
+    tick_indices = list(range(0, len(bin_centers)-1, 8)) + [len(bin_centers)-1]
+    tick_centers = [bin_centers[i] for i in tick_indices]
+    tick_labels = [bin_labels[i] for i in tick_indices]
+    # plt.xlabel("Popularity (number of L(C) votes closest to domain vote)", fontsize=16)
+    plt.ylabel("Votes Share", fontsize=28)
+    plt.title(f'{LABEL[name]}', fontsize=48)
+    plt.xticks(tick_centers, tick_labels, fontsize=24, rotation=0)
+    plt.yticks(fontsize=24)
+    plt.xlim(min_pop, max_pop+3*bin_size/2)
     plt.tight_layout()
-    plt.savefig(img_path)
+    plt.savefig(img_path, bbox_inches='tight', dpi=200)
+    plt.show()
 
 
 def compute_data_for_popularity_histogram(num_candidates, name):
@@ -50,23 +67,23 @@ def generate_popularity_histogram(num_candidates, name):
 if __name__ == "__main__":
 
     base = [
-        # 'euclidean_3d',
-        # 'euclidean_2d',
-        # 'spoc',
-        # 'sp_double_forked',
-        # 'caterpillar',
-        # 'balanced',
-        # 'single_peaked',
+        'euclidean_3d',
+        'euclidean_2d',
+        'spoc',
+        'sp_double_forked',
+        'caterpillar',
+        'balanced',
+        'single_peaked',
         'single_crossing',
-        # 'euclidean_1d',
+        'euclidean_1d',
     ]
 
 
-    num_candidates = 6
+    num_candidates = 8
 
     for name in reversed(base):
         print(f"Processing domain: {name} with {num_candidates} candidates...")
 
-        compute_data_for_popularity_histogram(num_candidates, name)
+        # compute_data_for_popularity_histogram(num_candidates, name)
 
         generate_popularity_histogram(num_candidates, name)

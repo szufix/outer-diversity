@@ -287,14 +287,13 @@ base_sorted = [
 
 # WITHOUT IC
 # compute_microscope(num_candidates, base_sorted)
-# plot_microscope(base_sorted, num_candidates, min_pop, max_pop)
-#
-# paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
-# create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}.png')
+plot_microscope(base_sorted, num_candidates, min_pop, max_pop)
+paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
+create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}.png')
 
 
 # WITH IC
 # compute_microscope(num_candidates, base_sorted, num_ic_votes=num_ic_votes, with_ic=True)
 # plot_microscope(base_sorted, num_candidates, min_pop, max_pop, with_ic=True, num_ic_votes=num_ic_votes)
-paths = [f'images/online/{name}_m{num_candidates}_with_ic_{num_ic_votes}.png' for name in base_sorted]
-create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}_with_ic.png')
+# paths = [f'images/online/{name}_m{num_candidates}_with_ic_{num_ic_votes}.png' for name in base_sorted]
+# create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}_with_ic.png')
