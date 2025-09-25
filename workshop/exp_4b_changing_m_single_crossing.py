@@ -12,7 +12,7 @@ from src.diversity.sampling import (
 )
 from src.domain.single_crossing import single_crossing_domain
 from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
-
+import threading
 
 def normalization(m):
     return math.factorial(m) // 2 * math.comb(m, 2)
@@ -182,16 +182,56 @@ def plot_joint_diversity_comparison(with_max=True):
     plt.show()
 
 
+def compute_diversity_comparison_data_for_candidate_run(num_candidates, run, num_samples, max_iterations, with_max=True, results_dir=None):
+    """
+    Compute diversity data for a single run and num_candidates value, export to a separate CSV.
+    """
+    import os
+    if results_dir is None:
+        results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
+    os.makedirs(results_dir, exist_ok=True)
+    csv_path = os.path.join(results_dir, f'_single_crossing_joint_{num_candidates}_run{run}.csv')
+    fieldnames = ['run', 'num_candidates', 'sc_diversity', 'optimal_diversity', 'domain_size']
+    with open(csv_path, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        sc_diversity, sc_size = compute_single_crossing_diversity(num_candidates, num_samples)
+        if with_max:
+            optimal_diversity = compute_optimal_diversity_for_size(num_candidates, sc_size, num_samples, max_iterations)
+        else:
+            optimal_diversity = None
+        row = {
+            'run': run,
+            'num_candidates': num_candidates,
+            'sc_diversity': sc_diversity,
+            'domain_size': sc_size,
+            'optimal_diversity': optimal_diversity
+        }
+        writer.writerow(row)
+
+def run_fully_parallel_diversity_computation(candidate_range, num_samples, max_iterations, with_max=True, num_runs=5):
+    """
+    Run diversity computation in parallel threads for each (num_candidates, run) pair.
+    """
+    threads = []
+    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
+    for num_candidates in candidate_range:
+        for run in range(num_runs):
+            t = threading.Thread(target=compute_diversity_comparison_data_for_candidate_run,
+                                 args=(num_candidates, run, num_samples, max_iterations, with_max, results_dir))
+            t.start()
+            threads.append(t)
+    for t in threads:
+        t.join()
+
 if __name__ == "__main__":
     candidate_range = range(2, 20+1)
     num_samples = 1000
-    max_iterations = 1000
+    max_iterations = 256
     num_runs = 10
-    with_max = True
-    # start_time = time()
-    compute_diversity_comparison_data(
-        candidate_range, num_samples, max_iterations, with_max=with_max, num_runs=num_runs)
-    # end_time = time()
-    # print(f"Computation time: {end_time - start_time} seconds")
-    plot_joint_diversity_comparison(with_max=with_max)
-
+    start_time = time()
+    run_fully_parallel_diversity_computation(
+        candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
+    end_time = time()
+    print(f"Computation time: {end_time - start_time} seconds")
+    # plot_joint_diversity_comparison(with_max=with_max)
