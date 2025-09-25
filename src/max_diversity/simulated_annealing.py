@@ -4,7 +4,7 @@ from typing import Dict
 import networkx as nx
 import numpy as np
 
-from max_diversity.greedy import find_optimal_facilities_greedy
+from src.max_diversity.greedy import find_optimal_facilities_greedy
 from src.diversity.sampling import outer_diversity_sampling
 from src.diversity.sampling import spread_permutations
 from src.max_diversity.utils import compute_total_cost, create_vote_integer_mapping
