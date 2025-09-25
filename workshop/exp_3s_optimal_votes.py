@@ -14,6 +14,10 @@ def parse_args():
 
     parser.add_argument('--m', type=int)
 
+    parser.add_argument('--iter', type=int)
+
+    parser.add_argument('--samples', type=int)
+
     args = parser.parse_args()
     return args
 
@@ -27,4 +31,7 @@ if __name__ == "__main__":
     method_name = args.method
     domain_sizes = range(1,args.range+1)
 
-    compute_optimal_nodes(num_candidates, domain_sizes, method_name)
+    max_iterations = args.iter
+    num_samples = args.samples
+
+    compute_optimal_nodes(num_candidates, domain_sizes, method_name, max_iterations, num_samples)

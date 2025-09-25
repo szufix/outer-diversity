@@ -10,7 +10,13 @@ from max_diversity.simulated_annealing import find_optimal_facilities_simulated_
 from max_diversity.swap_graph import create_vote_swap_graph
 
 
-def compute_optimal_nodes(num_candidates, domain_sizes, method_name, start_with='ic'):
+def compute_optimal_nodes(
+        num_candidates,
+        domain_sizes,
+        method_name,
+        max_iterations,
+        num_samples,
+        start_with='ic'):
     import csv
     import os
     results = []
@@ -51,10 +57,10 @@ def compute_optimal_nodes(num_candidates, domain_sizes, method_name, start_with=
                                                 vote_graph, domain_size, previous_nodes)
         elif method_name == 'sa':
             optimal_nodes, total_cost = find_optimal_facilities_simulated_annealing(
-                vote_graph, domain_size, max_iterations=1000)
+                vote_graph, domain_size, max_iterations=max_iterations)
         elif method_name == 'smpl_sa':
             optimal_nodes_votes, total_cost = find_optimal_facilities_sampled_simulated_annealing(
-                num_candidates, domain_size, max_iterations=1000, num_samples=1000,
+                num_candidates, domain_size, max_iterations=max_iterations, num_samples=num_samples,
                 start_with=start_with)
             optimal_nodes = []
         elif method_name == 'bf':
@@ -118,13 +124,13 @@ def compute_optimal_nodes_single(num_candidates: int, domain_size: int, method_n
         optimal_nodes, total_cost = find_optimal_ilp(vote_graph, domain_size)
     elif method_name == 'ilp_fast':
         optimal_nodes, total_cost = find_optimal_facilities_milp_approx(vote_graph, domain_size)
-    elif method_name == 'sa':
-        optimal_nodes, total_cost = find_optimal_facilities_simulated_annealing(
-            vote_graph, domain_size, max_iterations=1000)
-    elif method_name == 'smpl_sa':
-        optimal_nodes_votes, total_cost = find_optimal_facilities_sampled_simulated_annealing(
-            num_candidates, domain_size, max_iterations=1000, num_samples=1000)
-        optimal_nodes = []
+    # elif method_name == 'sa':
+    #     optimal_nodes, total_cost = find_optimal_facilities_simulated_annealing(
+    #         vote_graph, domain_size, max_iterations=1000)
+    # elif method_name == 'smpl_sa':
+    #     optimal_nodes_votes, total_cost = find_optimal_facilities_sampled_simulated_annealing(
+    #         num_candidates, domain_size, max_iterations=1000, num_samples=1000)
+    #     optimal_nodes = []
     else:
         raise ValueError(f"Unknown method: {method_name}")
 

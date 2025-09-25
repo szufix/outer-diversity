@@ -2,6 +2,7 @@ from src.max_diversity.main import compute_optimal_nodes
 from src.max_diversity.plot import plot_optimal_nodes_results
 from time import time
 
+from workshop.workshop import num_samples
 
 # Example usage
 if __name__ == "__main__":
@@ -24,6 +25,9 @@ if __name__ == "__main__":
 
     num_candidates = 5
     domain_sizes = range(1,10+1)
+
+    num_iterations = 100
+    num_samples = 100
 
     # # For ILP: check if individual results exist and merge them
     # ilp_available, ilp_missing = check_individual_results_status(num_candidates, 'ilp', list(domain_sizes))
