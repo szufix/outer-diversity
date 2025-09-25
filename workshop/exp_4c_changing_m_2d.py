@@ -183,15 +183,15 @@ def plot_joint_diversity_comparison(with_max=True):
 
 
 if __name__ == "__main__":
-    candidate_range = range(2, 36+1)
+    candidate_range = range(2, 20+1)
     num_samples = 1000
-    max_iterations = 10
-    num_runs = 5
-    with_max = False
-    start_time = time()
+    max_iterations = 1000
+    num_runs = 10
+    with_max = True
+    # start_time = time()
     compute_diversity_comparison_data(
         candidate_range, num_samples, max_iterations, with_max=with_max, num_runs=num_runs)
-    end_time = time()
+    # end_time = time()
     # print(f"Computation time: {end_time - start_time} seconds")
     plot_joint_diversity_comparison(with_max=with_max)
 

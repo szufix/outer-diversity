@@ -1,7 +1,4 @@
-import math
-
-import matplotlib.pyplot as plt
-import pandas as pd
+from time import time
 import csv
 import os
 from src.diversity.sampling import (
@@ -15,9 +12,6 @@ from src.domain.group_separable import (
 )
 from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
 
-
-def normalization(m):
-    return math.factorial(m) // 2 * math.comb(m, 2)
 
 def compute_single_peaked_diversity(num_candidates, num_samples):
     """Compute outer diversity for single-peaked domain."""
@@ -56,155 +50,121 @@ def compute_group_separable_balanced_diversity(num_candidates, num_samples):
     return outer_diversity, len(domain)
 
 
-
 def compute_optimal_diversity_for_size(num_candidates, domain_size, num_samples, max_iterations):
     """Compute maximum possible outer diversity for a given domain size using sampled SA."""
-    # Use sampled simulated annealing to find optimal votes directly
     optimal_votes, outer_diversity = find_optimal_facilities_sampled_simulated_annealing(
         num_candidates,
         domain_size,
         max_iterations=max_iterations,
         num_samples=num_samples,
         start_with='ic')
-
     return outer_diversity
 
-
 def compute_diversity_comparison_data(
-        candidate_range, num_samples, max_iterations, with_max=True):
-    """Compute diversity data and export to CSV."""
-    sp_diversities = []
-    gs_caterpillar_diversities = []
-    gs_balanced_diversities = []
-
-    optimal_diversities = []
-    domain_sizes = []
-
-    print("Computing diversities for different numbers of candidates...")
-
-    for num_candidates in candidate_range:
-        print(f"Processing {num_candidates} candidates...")
-        sp_diversity, sp_size = compute_single_peaked_diversity(
-            num_candidates, num_samples)
-        sp_diversities.append(sp_diversity)
-        domain_sizes.append(sp_size)
-
-        gs_caterpillar_diversity, _ = compute_group_separable_caterpillar_diversity(
-            num_candidates, num_samples)
-        gs_caterpillar_diversities.append(gs_caterpillar_diversity)
-        gs_balanced_diversity, _ = compute_group_separable_balanced_diversity(
-            num_candidates, num_samples
-        )
-        gs_balanced_diversities.append(gs_balanced_diversity)
-
-        if with_max:
-            optimal_diversity = compute_optimal_diversity_for_size(
-                num_candidates, sp_size, num_samples, max_iterations)
-            optimal_diversities.append(optimal_diversity)
-
-    # Export data to CSV for record-keeping
-
-    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_num_candidates')
+        candidate_range, num_samples, max_iterations, with_max=True, num_runs=5):
+    """
+    Compute diversity data for num_runs runs and export all results to a joint CSV.
+    Each row contains: run, num_candidates, sp_diversity, gs_caterpillar_diversity, gs_balanced_diversity, optimal_diversity, domain_size
+    """
+    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
     os.makedirs(results_dir, exist_ok=True)
-    csv_path = os.path.join(results_dir, 'diversity_comparison.csv')
+    csv_path = os.path.join(results_dir, '_single_peaked_joint.csv')
+    fieldnames = ['run', 'num_candidates', 'sp_diversity', 'gs_caterpillar_diversity', 'gs_balanced_diversity', 'optimal_diversity', 'domain_size']
     with open(csv_path, 'w', newline='') as csvfile:
-        fieldnames = ['num_candidates',
-                      'sp_diversity',
-                      'gs_caterpillar_diversity',
-                      'gs_balanced_diversity',
-                      'optimal_diversity',
-                       'domain_size']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
-        for i, num_candidates in enumerate(candidate_range):
-            row = {
-                'num_candidates': num_candidates,
-                'sp_diversity': sp_diversities[i],
-                'gs_caterpillar_diversity': gs_caterpillar_diversities[i],
-                'gs_balanced_diversity': gs_balanced_diversities[i],
-                'domain_size': domain_sizes[i],
-                'optimal_diversity': optimal_diversities[i] if with_max else None
-            }
-            writer.writerow(row)
+        for run in range(num_runs):
+            sp_diversities = []
+            gs_caterpillar_diversities = []
+            gs_balanced_diversities = []
+            optimal_diversities = []
+            domain_sizes = []
+            print(f"Run {run+1}/{num_runs}")
+            for num_candidates in candidate_range:
+                print(f"Processing {num_candidates} candidates...")
+                sp_diversity, sp_size = compute_single_peaked_diversity(num_candidates, num_samples)
+                gs_caterpillar_diversity, _ = compute_group_separable_caterpillar_diversity(num_candidates, num_samples)
+                gs_balanced_diversity, _ = compute_group_separable_balanced_diversity(num_candidates, num_samples)
+                sp_diversities.append(sp_diversity)
+                gs_caterpillar_diversities.append(gs_caterpillar_diversity)
+                gs_balanced_diversities.append(gs_balanced_diversity)
+                domain_sizes.append(sp_size)
+                if with_max:
+                    optimal_diversity = compute_optimal_diversity_for_size(num_candidates, sp_size, num_samples, max_iterations)
+                    optimal_diversities.append(optimal_diversity)
+            for i, num_candidates in enumerate(candidate_range):
+                row = {
+                    'run': run,
+                    'num_candidates': num_candidates,
+                    'sp_diversity': sp_diversities[i],
+                    'gs_caterpillar_diversity': gs_caterpillar_diversities[i],
+                    'gs_balanced_diversity': gs_balanced_diversities[i],
+                    'domain_size': domain_sizes[i],
+                    'optimal_diversity': optimal_diversities[i] if with_max else None
+                }
+                writer.writerow(row)
 
-def plot_diversity_comparison(with_max=True):
-    """Plot diversity comparison from CSV."""
+def plot_joint_diversity_comparison(with_max=True):
+    """
+    Plot diversity comparison from joint CSV, showing mean and std across all runs.
+    Also print the mean and std for each candidate count.
+    """
     import os
     import pandas as pd
+    import numpy as np
     import matplotlib.pyplot as plt
-    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_num_candidates')
-    csv_path = os.path.join(results_dir, 'diversity_comparison.csv')
+    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
+    csv_path = os.path.join(results_dir, '_single_peaked_joint.csv')
     df = pd.read_csv(csv_path)
-    candidate_range = df['num_candidates']
-    sp_diversities = df['sp_diversity']
-    gs_caterpillar_diversities = df['gs_caterpillar_diversity']
-    gs_balanced_diversities = df['gs_balanced_diversity']
-    optimal_diversities = df['optimal_diversity'] if with_max else None
-
+    grouped = df.groupby('num_candidates')
+    candidate_range = np.array(sorted(df['num_candidates'].unique()))
+    sp_mean = grouped['sp_diversity'].mean().values
+    sp_std = grouped['sp_diversity'].std().values
+    gs_caterpillar_mean = grouped['gs_caterpillar_diversity'].mean().values
+    gs_caterpillar_std = grouped['gs_caterpillar_diversity'].std().values
+    gs_balanced_mean = grouped['gs_balanced_diversity'].mean().values
+    gs_balanced_std = grouped['gs_balanced_diversity'].std().values
+    if with_max:
+        opt_mean = grouped['optimal_diversity'].mean().values
+        opt_std = grouped['optimal_diversity'].std().values
+    # Print table of means and stds
+    print("num_candidates | sp_mean | sp_std | gs_caterpillar_mean | gs_caterpillar_std | gs_balanced_mean | gs_balanced_std | optimal_mean | optimal_std")
+    for i, num_candidates in enumerate(candidate_range):
+        if with_max:
+            print(f"{num_candidates:>13} | {sp_mean[i]:.4f} | {sp_std[i]:.4f} | {gs_caterpillar_mean[i]:.4f} | {gs_caterpillar_std[i]:.4f} | {gs_balanced_mean[i]:.4f} | {gs_balanced_std[i]:.4f} | {opt_mean[i]:.4f} | {opt_std[i]:.4f}")
+        else:
+            print(f"{num_candidates:>13} | {sp_mean[i]:.4f} | {sp_std[i]:.4f} | {gs_caterpillar_mean[i]:.4f} | {gs_caterpillar_std[i]:.4f} | {gs_balanced_mean[i]:.4f} | {gs_balanced_std[i]:.4f}")
+    # Plot
     plt.figure(figsize=(10, 6))
-    if with_max and optimal_diversities is not None:
-        plt.plot(candidate_range, optimal_diversities,
-                 label='~Maximum Possible (Simulated Annealing)',
-                 marker='s',
-                 linewidth=2,
-                 markersize=8,
-                 color='tab:green')
-
-    plt.plot(candidate_range, gs_balanced_diversities,
-             label='GS Balanced Domain',
-             marker='o',
-             linewidth=2,
-             markersize=8,
-             color='tab:purple')
-
-    plt.plot(candidate_range, gs_caterpillar_diversities,
-             label='GS Caterpillar Domain',
-             marker='o',
-             linewidth=2,
-             markersize=8,
-             color='tab:blue')
-
-    plt.plot(candidate_range, sp_diversities,
-             label='Single-Peaked Domain',
-             marker='o',
-             linewidth=2,
-             markersize=8,
-             color='tab:red')
-
-
-
-
+    plt.plot(candidate_range, sp_mean, label='Single-Peaked Domain', marker='o', linewidth=2, markersize=8, color='tab:blue')
+    plt.fill_between(candidate_range, sp_mean - sp_std, sp_mean + sp_std, color='tab:blue', alpha=0.2)
+    plt.plot(candidate_range, gs_caterpillar_mean, label='Group-Separable Caterpillar', marker='^', linewidth=2, markersize=8, color='tab:orange')
+    plt.fill_between(candidate_range, gs_caterpillar_mean - gs_caterpillar_std, gs_caterpillar_mean + gs_caterpillar_std, color='tab:orange', alpha=0.2)
+    plt.plot(candidate_range, gs_balanced_mean, label='Group-Separable Balanced', marker='s', linewidth=2, markersize=8, color='tab:purple')
+    plt.fill_between(candidate_range, gs_balanced_mean - gs_balanced_std, gs_balanced_mean + gs_balanced_std, color='tab:purple', alpha=0.2)
+    if with_max:
+        plt.plot(candidate_range, opt_mean, label='~Maximum Possible (Simulated Annealing)', marker='x', linewidth=2, markersize=8, color='tab:green')
+        plt.fill_between(candidate_range, opt_mean - opt_std, opt_mean + opt_std, color='tab:green', alpha=0.2)
     plt.xlabel('Number of Candidates', fontsize=22)
     plt.ylabel('Outer Diversity Score', fontsize=22)
-    if with_max:
-        plt.title('Outer Diversity: Single-Peaked vs Maximum Possible', fontsize=20)
-    else:
-        plt.title('Outer Diversity: Single-Peaked', fontsize=20)
-    plt.legend(fontsize=16)
+    plt.title('Outer Diversity: Single-Peaked, Group-Separable, Maximum (Mean ± Std)', fontsize=20)
+    plt.legend(fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.xticks(candidate_range, fontsize=18)
     plt.yticks(fontsize=18)
     plt.ylim(0, 1)
     plt.tight_layout()
-    plt.savefig('images/changing_num_candidates_diversity_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig('images/changing_m_single_peaked_joint.png', dpi=300, bbox_inches='tight')
     plt.show()
 
-def import_diversity_comparison_results():
-    """Import diversity comparison results from CSV file."""
-    import os
-    import pandas as pd
-    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_num_candidates')
-    csv_path = os.path.join(results_dir, 'diversity_comparison.csv')
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(f"Results file not found: {csv_path}")
-    return pd.read_csv(csv_path)
-
-
-
 if __name__ == "__main__":
-    candidate_range = range(2, 20+1)  # 3 to 10 candidates
+    candidate_range = range(2, 10+1)
     num_samples = 1000
     max_iterations = 1000
+    num_runs = 10
+    start_time = time()
     compute_diversity_comparison_data(
-        candidate_range, num_samples, max_iterations, with_max=True)
-    plot_diversity_comparison(with_max=True)
+        candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
+    end_time = time()
+    print(f"Computation time: {end_time - start_time} seconds")
+    plot_joint_diversity_comparison(with_max=True)
