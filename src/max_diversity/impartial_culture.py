@@ -1,6 +1,6 @@
 import numpy as np
 
-from max_diversity.utils import compute_total_cost
+from src.max_diversity.utils import compute_total_cost
 from src.diversity.sampling import sample_impartial_culture, outer_diversity_sampling
 
 
