@@ -12,6 +12,7 @@ from src.diversity.sampling import (
 )
 from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
 from src.domain.euclidean_ilp import euclidean_2d_domain
+import threading
 
 def normalization(m):
     return math.factorial(m) // 2 * math.comb(m, 2)
