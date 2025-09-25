@@ -6,13 +6,14 @@ from time import time
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import multiprocessing
 
 from src.diversity.sampling import (
     outer_diversity_sampling_for_structered_domains
 )
 from src.domain.single_crossing import single_crossing_domain
 from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
-import threading
+
 
 def normalization(m):
     return math.factorial(m) // 2 * math.comb(m, 2)
@@ -211,18 +212,18 @@ def compute_diversity_comparison_data_for_candidate_run(num_candidates, run, num
 
 def run_fully_parallel_diversity_computation(candidate_range, num_samples, max_iterations, with_max=True, num_runs=5):
     """
-    Run diversity computation in parallel threads for each (num_candidates, run) pair.
+    Run diversity computation in parallel processes for each (num_candidates, run) pair.
     """
-    threads = []
+    processes = []
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
     for num_candidates in candidate_range:
         for run in range(num_runs):
-            t = threading.Thread(target=compute_diversity_comparison_data_for_candidate_run,
-                                 args=(num_candidates, run, num_samples, max_iterations, with_max, results_dir))
-            t.start()
-            threads.append(t)
-    for t in threads:
-        t.join()
+            p = multiprocessing.Process(target=compute_diversity_comparison_data_for_candidate_run,
+                                       args=(num_candidates, run, num_samples, max_iterations, with_max, results_dir))
+            p.start()
+            processes.append(p)
+    for p in processes:
+        p.join()
 
 if __name__ == "__main__":
     candidate_range = range(2, 20+1)
