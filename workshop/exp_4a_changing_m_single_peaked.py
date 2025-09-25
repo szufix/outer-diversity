@@ -146,7 +146,7 @@ def compute_diversity_comparison_data_for_candidate_run(num_candidates, run, num
     if results_dir is None:
         results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
     os.makedirs(results_dir, exist_ok=True)
-    csv_path = os.path.join(results_dir, 'individual', f'_single_peaked_{num_candidates}_run{run}.csv')
+    csv_path = os.path.join(results_dir, 'single_peaked', f'_single_peaked_{num_candidates}_run{run}.csv')
     fieldnames = ['run', 'num_candidates', 'sp_diversity', 'gs_caterpillar_diversity', 'gs_balanced_diversity', 'optimal_diversity', 'domain_size']
     with open(csv_path, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
