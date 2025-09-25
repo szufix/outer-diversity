@@ -9,10 +9,11 @@ if __name__ == "__main__":
     methods = [
         # 'ilp',  # Use individual computation for ILP
         # 'greedy_ilp',
-        'sa',
-        'smpl_sa'
+        # 'sa',
+        # 'smpl_sa'
         # 'ic',
-        # 'smpl_ic'
+        'smpl_ic',
+        'smpl_holy_ic',
     ]
 
     # num_candidates = 4
@@ -24,11 +25,11 @@ if __name__ == "__main__":
     # num_candidates = 6
     # domain_sizes = range(1,120+1)
 
-    num_candidates = 5
+    num_candidates = 8
     domain_sizes = range(1,10+1)
 
-    max_iterations = 100
-    num_samples = 100
+    max_iterations = None
+    num_samples = 1000
 
 
     x = []
@@ -46,4 +47,4 @@ if __name__ == "__main__":
         x.append(end - start)
     print(x)
 
-    # plot_optimal_nodes_results(num_candidates, methods, domain_sizes, with_structured_domains=True)
+    plot_optimal_nodes_results(num_candidates, methods, domain_sizes, with_structured_domains=False)

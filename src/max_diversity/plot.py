@@ -29,7 +29,7 @@ def load_optimal_nodes_results(num_candidates: int, method_name: str) -> List[Di
                 # Convert string values back to appropriate types
                 result = {
                     'domain_size': int(row['domain_size']),
-                    'total_cost': int(row['total_cost']),
+                    'total_cost': float(row['total_cost']),
                     'optimal_nodes_int': eval(row['optimal_nodes_int']),
                     'optimal_nodes_votes': eval(row['optimal_nodes_votes'])
                 }
@@ -100,14 +100,14 @@ def plot_optimal_nodes_results(
         return
 
     # Calculate and print approximation ratios
-    if 'ilp' in all_results:
-        ilp_costs = {result['domain_size']: result['total_cost'] for result in all_results['ilp']}
-        optimal_diversity = {key: 1 - tc / normalization(num_candidates) for key, tc in ilp_costs.items()}
-
-        for method in methods:
-            if method != 'ilp' and method in all_results:
-                method_costs = {result['domain_size']: result['total_cost'] for result in all_results[method]}
-                outer_diversity = {key: 1 - tc / normalization(num_candidates) for key, tc in method_costs.items()}
+    # if 'ilp' in all_results:
+    #     ilp_costs = {result['domain_size']: result['total_cost'] for result in all_results['ilp']}
+    #     optimal_diversity = {key: 1 - tc / normalization(num_candidates) for key, tc in ilp_costs.items()}
+    #
+    #     for method in methods:
+    #         if method != 'ilp' and method in all_results:
+    #             method_costs = {result['domain_size']: result['total_cost'] for result in all_results[method]}
+    #             outer_diversity = {key: 1 - tc / normalization(num_candidates) for key, tc in method_costs.items()}
 
                 # Calculate approximation ratios for common domain sizes
                 # ratios = []
@@ -141,6 +141,8 @@ def plot_optimal_nodes_results(
         'greedy_ilp': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'Greedy ILP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
         'sa': {'marker': 's', 'linestyle': '--', 'color': 'red', 'label': 'SA', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
         'smpl_sa': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'Sampling SA', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+        'smpl_ic': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'Smpl IC', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+        'smpl_holy_ic': {'marker': '^', 'linestyle': '-', 'color': 'blue', 'label': 'Smpl Holy IC', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
     }
 
     # Plot results for each method
@@ -148,8 +150,8 @@ def plot_optimal_nodes_results(
         print(method)
         domain_sizes = [result['domain_size'] for result in results]
         total_costs = [result['total_cost'] for result in results]
-        outer_diversity = [1 - tc / normalization(num_candidates) for tc in total_costs]
-
+        # outer_diversity = [1 - tc / normalization(num_candidates) for tc in total_costs]
+        outer_diversity = total_costs
         # Add gray shading for constant increment regions (only for the first method)
         if method == list(all_results.keys())[0]:
             constant_regions = []

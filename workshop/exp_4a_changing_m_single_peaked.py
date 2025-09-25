@@ -14,7 +14,7 @@ from src.domain.group_separable import (
     group_separable_caterpillar_domain,
     group_separable_balanced_domain
 )
-from src.optimal_votes import find_optimal_facilities_sampled_simulated_annealing
+from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
 
 
 def normalization(m):
@@ -187,7 +187,7 @@ def plot_diversity_comparison(with_max=True):
     plt.yticks(fontsize=18)
     plt.ylim(0, 1)
     plt.tight_layout()
-    plt.savefig('img/changing_num_candidates_diversity_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig('images/changing_num_candidates_diversity_comparison.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 def import_diversity_comparison_results():
@@ -203,9 +203,9 @@ def import_diversity_comparison_results():
 
 
 if __name__ == "__main__":
-    candidate_range = range(2, 9+1)  # 3 to 10 candidates
+    candidate_range = range(2, 20+1)  # 3 to 10 candidates
     num_samples = 1000
-    max_iterations = 1
+    max_iterations = 1000
     compute_diversity_comparison_data(
-        candidate_range, num_samples, max_iterations, with_max=False)
-    plot_diversity_comparison(with_max=False)
+        candidate_range, num_samples, max_iterations, with_max=True)
+    plot_diversity_comparison(with_max=True)

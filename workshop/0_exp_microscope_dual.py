@@ -124,24 +124,47 @@ def print_microscope(
     if max_pop is None:
         max_pop = 200000
 
-    popularity *= len(popularity)
+    popularity_without_ic = np.array([p for p in popularity if p >= 0])
+    popularity_without_ic *= len(popularity_without_ic)
 
     print('min_pop', min_pop)
     print('max_pop', max_pop)
-    norm_popularity = np.clip(popularity, min_pop, max_pop)
+    clipped_popularity_without_ic = np.clip(popularity_without_ic, min_pop, max_pop)
 
     # Custom colormap: darker blue -> warmer green -> darker red, with green at ideal_pop
-    colors_list = ["#1f77b4", "#BFD8B8", "#e41a1c"]  # #a3c686 is a warmer green
+    colors_list = ["#08519c", "#f5deb3", "#d73027"]  # #a3c686 is a warmer green
     custom_cmap = LinearSegmentedColormap.from_list('blue_green_red', colors_list, N=256)
     norm = TwoSlopeNorm(vmin=min_pop, vcenter=ideal_pop, vmax=max_pop)
-    colors = custom_cmap(norm(norm_popularity))
+    colors = custom_cmap(norm(clipped_popularity_without_ic))
+
 
     for i in range(len(popularity)):
-        election.microscope.ax.scatter(election.coordinates['vote'][i][0],
-                                       election.coordinates['vote'][i][1],
-                                       c=[colors[i]],
-                                       alpha=0.9,
-                                       s=50)
+        if popularity[i] == -1:
+            election.microscope.ax.scatter(election.coordinates['vote'][i][0],
+                                           election.coordinates['vote'][i][1],
+                                           c='#f0f0f0',
+                                           # alpha=0.05,
+                                           s=25)
+    ctr = 0
+    for i in range(len(popularity)):
+        if popularity[i] >= 0:
+
+            if popularity_without_ic[ctr] > ideal_pop:
+                marker = 'o'  # upward triangle for above ideal
+            elif popularity_without_ic[ctr] == ideal_pop:
+                marker = '^'  # downward triangle for below ideal
+            elif popularity_without_ic[ctr] < ideal_pop:
+                marker = 'x'  # downward triangle for below ideal
+
+
+            election.microscope.ax.scatter(election.coordinates['vote'][i][0],
+                                           election.coordinates['vote'][i][1],
+                                           c=[colors[ctr]],
+                                           alpha=1,
+                                           marker=marker,
+                                           s=50)
+            ctr += 1
+
         election.microscope.ax.set_title(title, fontsize=44)
     election.microscope.show_and_save(saveas=saveas)
 
@@ -161,32 +184,46 @@ def map_ids(election_target, election_with_ic, centers, clusters):
     return new_center_ids, new_cluster_ids
 
 
-def compute_microscope(num_candidates, base):
+def compute_microscope(num_candidates, base, num_ic_votes=None, with_ic=None):
+
     for sampler_name in base:
-        sampler = samplers[sampler_name]
         # Import popularity data for this domain and m
         pop_csv_path = os.path.join(os.getcwd(), f'data/popularity/{sampler_name}_m{num_candidates}.csv')
         popularity, pop_votes = import_popularity_from_csv(pop_csv_path)
-        votes = np.array(pop_votes)
+
+        if with_ic:
+            votes_with_ic = [np.random.permutation(num_candidates) for _ in range(num_ic_votes)]
+        else:
+            votes_with_ic = []
+
+        votes = pop_votes + votes_with_ic
+        votes = np.array(votes)
 
         election_with_ic = mapof.generate_ordinal_election_from_votes(votes)
         election_with_ic.compute_distances(distance_id='swap', object_type='vote')
         election_with_ic.embed(algorithm='mds', object_type='vote')
         election_with_ic.set_microscope(alpha=.5, object_type='vote')
-        saveas = f'{sampler_name}_m{num_candidates}'
+
+        if with_ic:
+            saveas = f'{sampler_name}_m{num_candidates}_with_ic_{num_ic_votes}'
+        else:
+            saveas = f'{sampler_name}_m{num_candidates}'
 
         # Map votes to popularity properly
         vote_to_pop = {tuple(v): p for v, p in zip(pop_votes, popularity)}
-        mapped_popularity = [vote_to_pop.get(tuple(v), 0.0) for v in election_with_ic.distinct_votes]
+        mapped_popularity = [vote_to_pop.get(tuple(v), -1.) for v in election_with_ic.distinct_votes]
 
         export_data_to_csv(election_with_ic, mapped_popularity, saveas)
 
 
 def plot_microscope(base, num_candidates, min_pop, max_pop, with_ic=False, num_ic_votes=None, with_title=True):
     for sampler_name in base:
-        sampler = samplers[sampler_name]
 
-        filename = f'{sampler_name}_m{num_candidates}'
+        if with_ic:
+            filename = f'{sampler_name}_m{num_candidates}_with_ic_{num_ic_votes}'
+        else:
+            filename = f'{sampler_name}_m{num_candidates}'
+
         votes, X, Y, popularity = import_data_from_csv(filename)
         election = mapof.generate_ordinal_election_from_votes(votes)
         election.coordinates['vote'] = np.column_stack((X, Y))
@@ -220,7 +257,8 @@ def plot_microscope(base, num_candidates, min_pop, max_pop, with_ic=False, num_i
             )
 
         title = f'{LABEL.get(sampler_name, sampler_name)}'
-        saveas = f'{sampler_name}_m{num_candidates}'
+
+        saveas = filename
 
         print_microscope(election, popularity, title, saveas, min_pop, max_pop, with_title=with_title)
 
@@ -228,6 +266,11 @@ def plot_microscope(base, num_candidates, min_pop, max_pop, with_ic=False, num_i
 ## BEFORE DOING THIS YOU HAVE TO COMPUTE POPULARITY DATA FOR ALL DOMAINS
 
 num_candidates = 8
+num_ic_votes = 512
+
+min_pop = 1
+max_pop = 200000
+
 
 base_sorted = [
     'euclidean_3d',
@@ -241,11 +284,17 @@ base_sorted = [
     'euclidean_1d',
 ]
 
-min_pop = 1
-max_pop = 200000
 
+# WITHOUT IC
 # compute_microscope(num_candidates, base_sorted)
-plot_microscope(base_sorted, num_candidates, min_pop, max_pop)
+# plot_microscope(base_sorted, num_candidates, min_pop, max_pop)
+#
+# paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
+# create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}.png')
 
-paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
-create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}.png')
+
+# WITH IC
+# compute_microscope(num_candidates, base_sorted, num_ic_votes=num_ic_votes, with_ic=True)
+# plot_microscope(base_sorted, num_candidates, min_pop, max_pop, with_ic=True, num_ic_votes=num_ic_votes)
+paths = [f'images/online/{name}_m{num_candidates}_with_ic_{num_ic_votes}.png' for name in base_sorted]
+create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}_with_ic.png')

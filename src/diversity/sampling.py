@@ -63,6 +63,28 @@ def sample_impartial_culture(num_candidates: int, num_samples: int):
     return [tuple(random.sample(range(num_candidates), num_candidates)) for _ in range(num_samples)]
 
 
+def sample_diverse_votes(num_candidates: int, domain_size: int):
+    """
+    Iteratively sample votes such that each new vote has swap distance at least 'threshold' from all previously sampled votes.
+    Returns a list of votes.
+    """
+
+    max_dist = num_candidates * (num_candidates - 1) // 2
+    votes = []
+    attempts = 0
+    max_attempts = 10000 * domain_size  # Prevent infinite loops
+    while len(votes) < domain_size and attempts < max_attempts:
+        # threshold = max_dist / (len(votes) + 2)
+        threshold = max([5, max_dist / (len(votes) + 2)])
+        print(len(votes), threshold)
+        new_vote = sample_impartial_culture(num_candidates, 1)[0]
+        if all(swap_distance_between_potes(new_vote, v) >= threshold for v in votes):
+            votes.append(new_vote)
+        attempts += 1
+    if len(votes) < domain_size:
+        raise RuntimeError(f"Could not find enough diverse votes after {attempts} attempts.")
+    return votes
+
 def outer_diversity_sampling(
         domain,
         num_samples: int = 100,
@@ -91,7 +113,7 @@ def outer_diversity_sampling(
     # Check if num_samples is larger than num_candidates factorial
     if num_candidates < 10 and num_samples >= math.factorial(num_candidates):
         # Use all permutations if samples >= total
-        print("ALL", num_candidates)
+        # print("ALL", num_candidates)
         sampled_votes = list(itertools.permutations(range(num_candidates)))
     else:
         # sampled_votes = spread_permutations(num_candidates, num_samples)
@@ -129,7 +151,7 @@ def outer_diversity_sampling_for_structered_domains(
     # Check if num_samples is larger than num_candidates factorial
     if num_candidates < 10 and num_samples >= math.factorial(num_candidates):
         # Use all permutations if samples >= total
-        print("ALL", num_candidates)
+        # print("ALL", num_candidates)
         sampled_votes = list(itertools.permutations(range(num_candidates)))
     else:
         # sampled_votes = spread_permutations(num_candidates, num_samples)
@@ -158,3 +180,4 @@ def outer_diversity_sampling_for_structered_domains(
     total_distance = 1 - total_distance
 
     return total_distance, len(sampled_votes)
+

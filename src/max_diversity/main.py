@@ -9,7 +9,9 @@ from src.max_diversity.ilp import find_optimal_ilp, find_optimal_facilities_milp
 from src.max_diversity.simulated_annealing import find_optimal_facilities_simulated_annealing, \
     find_optimal_facilities_sampled_simulated_annealing
 from src.max_diversity.swap_graph import create_vote_swap_graph
-from src.max_diversity.impartial_culture import diversity_for_ic, diversity_for_smpl_ic
+from src.max_diversity.impartial_culture import (
+    diversity_for_ic, diversity_for_smpl_ic, diversity_for_smpl_holy_ic
+)
 
 
 def compute_optimal_nodes(
@@ -35,7 +37,7 @@ def compute_optimal_nodes(
     vote_to_int = None
     int_to_vote = None
     # Always define these so they're not referenced before assignment
-    if method_name not in ['smpl_sa']:
+    if method_name not in ['smpl_sa', 'smpl_ic', 'smpl_holy_ic']:
         print("create a graph")
         vote_graph, vote_to_int, int_to_vote = create_vote_swap_graph(num_candidates)
         print("graph created")
@@ -77,6 +79,14 @@ def compute_optimal_nodes(
                 num_candidates, domain_size, num_samples=num_samples)
             optimal_nodes = []
 
+        # elif method_name == 'holy_ic':
+        #     optimal_nodes, total_cost = diversity_for_holy_ic(
+        #         vote_graph, domain_size)
+
+        elif method_name == 'smpl_holy_ic':
+            optimal_nodes_votes, total_cost = diversity_for_smpl_holy_ic(
+                num_candidates, domain_size, num_samples=num_samples)
+            optimal_nodes = []
 
         elif method_name == 'bf':
             optimal_nodes, total_cost = find_optimal_facilities_bruteforce(
@@ -85,7 +95,7 @@ def compute_optimal_nodes(
             raise ValueError(f"Unknown method: {method_name}")
 
         # Store results
-        if method_name in ['smpl_sa', 'smpl_ic']:
+        if method_name in ['smpl_sa', 'smpl_ic', 'smpl_holy_ic']:
             result = {
                 'domain_size': domain_size,
                 'total_cost': total_cost,
