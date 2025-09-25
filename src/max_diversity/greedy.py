@@ -1,5 +1,5 @@
 import networkx as nx
-from src.max_diversity.utils import compute_total_cost
+from src.max_diversity.utils import compute_total_cost, bfs_distances
 import networkx as nx
 
 

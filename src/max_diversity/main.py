@@ -63,6 +63,10 @@ def compute_optimal_nodes(
                 num_candidates, domain_size, max_iterations=max_iterations, num_samples=num_samples,
                 start_with=start_with)
             optimal_nodes = []
+
+        # elif method_name == 'ic':
+        #     optimal_nodes, total_cost = diversity_for_ic(vote_graph, domain_size)
+
         elif method_name == 'bf':
             optimal_nodes, total_cost = find_optimal_facilities_bruteforce(
                                                 vote_graph, domain_size)
