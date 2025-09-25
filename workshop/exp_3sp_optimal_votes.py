@@ -1,8 +1,13 @@
-from src.optimal_votes import (
+
+from src.max_diversity.main import (
+    compute_optimal_nodes,
     compute_optimal_nodes_single,
     merge_individual_results,
     check_individual_results_status,
 )
+from src.max_diversity.plot import plot_optimal_nodes_results
+
+
 import sys
 from time import time
 

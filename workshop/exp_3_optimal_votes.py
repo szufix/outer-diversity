@@ -1,9 +1,5 @@
-from src.optimal_votes import (
-    compute_optimal_nodes,
-    plot_optimal_nodes_results,
-    merge_individual_results,
-    check_individual_results_status,
-)
+from src.max_diversity.main import compute_optimal_nodes
+from src.max_diversity.plot import plot_optimal_nodes_results
 from time import time
 
 
@@ -26,7 +22,7 @@ if __name__ == "__main__":
     # num_candidates = 6
     # domain_sizes = range(1,120+1)
 
-    num_candidates = 8
+    num_candidates = 5
     domain_sizes = range(1,10+1)
 
     # # For ILP: check if individual results exist and merge them

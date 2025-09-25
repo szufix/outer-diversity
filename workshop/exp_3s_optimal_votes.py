@@ -1,11 +1,8 @@
 
 import sys
 import argparse
-
-from src.optimal_votes import (
-    compute_optimal_nodes,
-    plot_optimal_nodes_results,
-)
+from src.max_diversity.main import compute_optimal_nodes
+from src.max_diversity.plot import plot_optimal_nodes_results
 
 def parse_args():
     parser = argparse.ArgumentParser(description='...',
