@@ -1,4 +1,5 @@
 import csv
+import glob
 import math
 import os
 from time import time
@@ -13,6 +14,7 @@ from src.diversity.sampling import (
 )
 from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
 from src.domain.euclidean_ilp import euclidean_2d_domain
+from src.print_utils import LABEL, MARKER, COLOR, LINE
 
 def normalization(m):
     return math.factorial(m) // 2 * math.comb(m, 2)
@@ -138,7 +140,7 @@ def plot_joint_diversity_comparison(with_max=True):
     """
 
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
-    csv_path = os.path.join(results_dir, '_2d_joint.csv')
+    csv_path = os.path.join(results_dir, '_euclidean_2d_joint.csv')
     df = pd.read_csv(csv_path)
     grouped = df.groupby('num_candidates')
     candidate_range = np.array(sorted(df['num_candidates'].unique()))
@@ -149,26 +151,25 @@ def plot_joint_diversity_comparison(with_max=True):
         opt_std = grouped['optimal_diversity'].std().values
     # Print table of means and stds
     # Plot
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(9, 6))
     if with_max:
-        plt.plot(candidate_range, opt_mean, label='~Maximum Possible (Simulated Annealing)', marker='s', linewidth=2, markersize=8, color='tab:green')
-        plt.fill_between(candidate_range, opt_mean - opt_std, opt_mean + opt_std, color='tab:green', alpha=0.2)
-    plt.plot(candidate_range, twod_mean, label='2D Domain', marker='o', linewidth=2, markersize=8, color='tab:red')
-    plt.fill_between(candidate_range, twod_mean - twod_std, twod_mean + twod_std, color='tab:red', alpha=0.2)
-    plt.xlabel('Number of Candidates', fontsize=22)
-    plt.ylabel('Outer Diversity Score', fontsize=22)
-    if with_max:
-        plt.title('Outer Diversity: 2D vs Maximum Possible', fontsize=20)
-    else:
-        plt.title('Outer Diversity: 2D', fontsize=20)
-    plt.legend(fontsize=16)
+        plt.plot(candidate_range, opt_mean, label=LABEL['max'], marker=MARKER['max'], linewidth=2,
+                 markersize=8, color=COLOR['max'], linestyle=LINE['max'])
+        plt.fill_between(candidate_range, opt_mean - opt_std, opt_mean + opt_std,
+                         color=COLOR['max'], alpha=0.2)
+
+    plt.plot(candidate_range, twod_mean, label='2D-Sqr.', marker=MARKER['euclidean_2d'], linewidth=2, markersize=8, color=COLOR['euclidean_2d'])
+    plt.fill_between(candidate_range, twod_mean - twod_std, twod_mean + twod_std, color=COLOR['euclidean_2d'], alpha=0.2)
+    plt.xlabel('Number of Candidates', fontsize=36)
+    plt.ylabel('Outer Diversity', fontsize=36)
+    plt.legend(fontsize=32, loc='upper right')
     plt.grid(True, alpha=0.3)
-    # plt.xticks(candidate_range, fontsize=18)
-    plt.xticks(fontsize=18)
-    plt.yticks(fontsize=18)
+    xticks_to_show = [2, 5, 8, 12, 16, 20]
+    plt.xticks(xticks_to_show, fontsize=28)
+    plt.yticks(fontsize=28)
     plt.ylim(0, 1)
     plt.tight_layout()
-    plt.savefig('images/changing_m_2d_joint.png', dpi=300, bbox_inches='tight')
+    plt.savefig('images/changing_m/changing_m_euclidean_2d_with_max.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -214,14 +215,23 @@ def run_fully_parallel_diversity_computation(candidate_range, num_samples, max_i
     for p in processes:
         p.join()
 
+
+def merge_euclidean_2d_results():
+    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', 'euclidean_2d')
+    output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', '_euclidean_2d_joint.csv')
+    all_files = glob.glob(os.path.join(results_dir, '_2d_*_run*.csv'))
+    dfs = [pd.read_csv(f) for f in all_files]
+    merged = pd.concat(dfs, ignore_index=True)
+    merged.to_csv(output_path, index=False)
+    print(f"Merged {len(all_files)} files into {output_path}")
+
+
 if __name__ == "__main__":
-    candidate_range = range(2, 20+1)
+    candidate_range = range(2, 7+1)
     num_samples = 1000
     max_iterations = 256
     num_runs = 10
-    start_time = time()
-    run_fully_parallel_diversity_computation(
-        candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
-    end_time = time()
-    print(f"Computation time: {end_time - start_time} seconds")
-    # plot_joint_diversity_comparison(with_max=with_max)
+    # run_fully_parallel_diversity_computation(
+    #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
+    # merge_euclidean_2d_results()
+    plot_joint_diversity_comparison(with_max=True)

@@ -26,6 +26,8 @@ LABEL = {
 
     'single_vote': 'Single Vote',
     'ext_single_vote': 'Ext. Single Vote',
+
+    'max': '~Max'
 }
 
 LINE = {
@@ -43,6 +45,8 @@ LINE = {
     'single_peaked_walsh': 'solid',
     'single_vote': 'solid',
     'ext_single_vote': 'solid',
+
+    'max': 'dashed'
 }
 
 MARKER = {
@@ -60,6 +64,8 @@ MARKER = {
     'single_peaked_walsh': 'o',
     'single_vote': '*',
     'ext_single_vote': '*',
+
+    'max': 'o'
 }
 
 
@@ -80,4 +86,6 @@ COLOR = {
 
     'single_vote': 'black',
     'ext_single_vote': 'gray',
+
+    'max': 'black'
 }

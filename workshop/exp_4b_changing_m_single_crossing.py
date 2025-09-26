@@ -1,4 +1,5 @@
 import csv
+import glob
 import math
 import os
 from time import time
@@ -13,6 +14,7 @@ from src.diversity.sampling import (
 )
 from src.domain.single_crossing import single_crossing_domain
 from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
+from src.print_utils import LABEL, MARKER, COLOR, LINE
 
 
 def normalization(m):
@@ -153,33 +155,32 @@ def plot_joint_diversity_comparison(with_max=True):
         opt_mean = grouped['optimal_diversity'].mean().values
         opt_std = grouped['optimal_diversity'].std().values
     # Print table of means and stds
-    print("num_candidates | sc_mean | sc_std | optimal_mean | optimal_std")
-    for i, num_candidates in enumerate(candidate_range):
-        if with_max:
-            print(f"{num_candidates:>13} | {sc_mean[i]:.4f} | {sc_std[i]:.4f} | {opt_mean[i]:.4f} | {opt_std[i]:.4f}")
-        else:
-            print(f"{num_candidates:>13} | {sc_mean[i]:.4f} | {sc_std[i]:.4f}")
-    # Plot
-    plt.figure(figsize=(10, 6))
+    # print("num_candidates | sc_mean | sc_std | optimal_mean | optimal_std")
+    # for i, num_candidates in enumerate(candidate_range):
+    #     if with_max:
+    #         print(f"{num_candidates:>13} | {sc_mean[i]:.4f} | {sc_std[i]:.4f} | {opt_mean[i]:.4f} | {opt_std[i]:.4f}")
+    #     else:
+    #         print(f"{num_candidates:>13} | {sc_mean[i]:.4f} | {sc_std[i]:.4f}")
+    # # Plot
+    plt.figure(figsize=(9, 6))
     if with_max:
-        plt.plot(candidate_range, opt_mean, label='~Maximum Possible (Simulated Annealing)', marker='s', linewidth=2, markersize=8, color='tab:green')
-        plt.fill_between(candidate_range, opt_mean - opt_std, opt_mean + opt_std, color='tab:green', alpha=0.2)
-    plt.plot(candidate_range, sc_mean, label='Single-Crossing Domain', marker='o', linewidth=2, markersize=8, color='tab:red')
-    plt.fill_between(candidate_range, sc_mean - sc_std, sc_mean + sc_std, color='tab:red', alpha=0.2)
-    plt.xlabel('Number of Candidates', fontsize=22)
-    plt.ylabel('Outer Diversity Score', fontsize=22)
-    if with_max:
-        plt.title('Outer Diversity: Single-Crossing vs Maximum Possible', fontsize=20)
-    else:
-        plt.title('Outer Diversity: Single-Crossing', fontsize=20)
-    plt.legend(fontsize=16)
+        plt.plot(candidate_range, opt_mean, label=LABEL['max'], marker=MARKER['max'], linewidth=2,
+                 markersize=8, color=COLOR['max'], linestyle=LINE['max'])
+        plt.fill_between(candidate_range, opt_mean - opt_std, opt_mean + opt_std,
+                         color=COLOR['max'], alpha=0.2)
+
+    plt.plot(candidate_range, sc_mean, label=LABEL['single_crossing'], marker=MARKER['single_crossing'], linewidth=2, markersize=8, color=COLOR['single_crossing'])
+    plt.fill_between(candidate_range, sc_mean - sc_std, sc_mean + sc_std, color=COLOR['single_crossing'], alpha=0.2)
+    plt.xlabel('Number of Candidates', fontsize=36)
+    plt.ylabel('Outer Diversity', fontsize=36)
+    plt.legend(fontsize=32, loc='upper right')
     plt.grid(True, alpha=0.3)
-    # plt.xticks(candidate_range, fontsize=18)
-    plt.xticks(fontsize=18)
-    plt.yticks(fontsize=18)
+    xticks_to_show = [2, 5, 8, 12, 16, 20]
+    plt.xticks(xticks_to_show, fontsize=28)
+    plt.yticks(fontsize=28)
     plt.ylim(0, 1)
     plt.tight_layout()
-    plt.savefig('images/changing_m_single_crossing_joint.png', dpi=300, bbox_inches='tight')
+    plt.savefig('images/changing_m/changing_m_single_crossing_with_max.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -225,14 +226,21 @@ def run_fully_parallel_diversity_computation(candidate_range, num_samples, max_i
     for p in processes:
         p.join()
 
+def merge_single_crossing_results():
+    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', 'single_crossing')
+    output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', '_single_crossing_joint.csv')
+    all_files = glob.glob(os.path.join(results_dir, '_single_crossing_*_run*.csv'))
+    dfs = [pd.read_csv(f) for f in all_files]
+    merged = pd.concat(dfs, ignore_index=True)
+    merged.to_csv(output_path, index=False)
+    print(f"Merged {len(all_files)} files into {output_path}")
+
 if __name__ == "__main__":
     candidate_range = range(2, 20+1)
     num_samples = 1000
     max_iterations = 256
     num_runs = 10
-    start_time = time()
-    run_fully_parallel_diversity_computation(
-        candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
-    end_time = time()
-    print(f"Computation time: {end_time - start_time} seconds")
-    # plot_joint_diversity_comparison(with_max=with_max)
+    # run_fully_parallel_diversity_computation(
+    #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
+    # merge_single_crossing_results()
+    plot_joint_diversity_comparison(with_max=True)

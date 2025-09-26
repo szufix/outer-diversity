@@ -4,47 +4,57 @@ from src.diversity.diversity_utils import *
 from src.diversity.growing_domains import *
 
 
-def print_domain_diversity(base, candidate_range):
+def print_domain_diversity(base, candidate_range, num_runs=10):
+    import numpy as np
+    # Store all diversity values for all runs
+    diversity_data = {num_candidates: {name: [] for name in base} for num_candidates in candidate_range}
 
-    # Store all diversity values
-    diversity_data = {}
     for num_candidates in candidate_range:
-        size = load_domain_size_csv(num_candidates)
-        diversity_data[num_candidates] = {}
+        for run_idx in range(num_runs):
+            try:
+                size = load_domain_size_csv(f"{num_candidates}_run{run_idx}")
+            except Exception:
+                size = load_domain_size_csv(num_candidates)  # fallback for single file
+            for name in base:
+                if name not in size:
+                    print(f"Warning: {name} not found in the CSV data for run {run_idx}.")
+                    continue
+                size_increase = compute_balls_increase(size[name])
+                total_diversity = outer_diversity_from_balls_increase(size_increase, num_candidates)
+                diversity_data[num_candidates][name].append(total_diversity)
 
+    # Compute mean and std
+    diversity_stats = {num_candidates: {} for num_candidates in candidate_range}
+    for num_candidates in candidate_range:
         for name in base:
-            if name not in size:
-                print(f"Warning: {name} not found in the CSV data.")
-                return
+            vals = diversity_data[num_candidates][name]
+            if len(vals) > 0:
+                avg = float(np.mean(vals))
+                std = float(np.std(vals))
+            else:
+                avg = std = 0.0
+            diversity_stats[num_candidates][name] = (avg, std)
 
-            size_increase = compute_balls_increase(size[name])
-            total_diversity = outer_diversity_from_balls_increase(size_increase, num_candidates)
-            diversity_data[num_candidates][name] = total_diversity
-
-    # Sort base by diversity values in the first column
+    # Sort base by avg diversity for first candidate
     first_candidate = candidate_range[0]
-    sorted_base = sorted(base, key=lambda name: diversity_data[first_candidate][name])
+    sorted_base = sorted(base, key=lambda name: diversity_stats[first_candidate][name][0])
 
     # Print LaTeX table
     print("\\begin{tabular}{c" + "c" * len(candidate_range) + "}")
     print("\\hline")
-
-    # Header row
     header = "Domain"
     for num_candidates in candidate_range:
         header += f" & {num_candidates}"
     header += " \\\\"
     print(header)
     print("\\hline")
-
-    # Data rows
     for name in sorted_base:
         row = LABEL[name]
         for num_candidates in candidate_range:
-            row += f" & {round(diversity_data[num_candidates][name], 3)}"
+            avg, std = diversity_stats[num_candidates][name]
+            row += f" & {round(avg, 3)} $\\pm$ {round(std, 3)}"
         row += " \\\\"
         print(row)
-
     print("\\hline")
     print("\\end{tabular}")
 
@@ -165,15 +175,16 @@ if __name__ == "__main__":
         'single_vote',
     ]
 
-    candidate_range = [8]
+    candidate_range = [6,8]
+    num_runs = 10
 
-    for num_candidates in candidate_range:
-    #     compute_domain_balls(base, num_candidates)
+    # for num_candidates in candidate_range:
+    #     compute_domain_balls(base, num_candidates, num_runs)
 
         # plot_domain_size_total(base, num_candidates)
         # plot_domain_size_increase(base, num_candidates)
 
-        for name in base:
-            plot_domain_size_increase_bar(name, num_candidates)
+        # for name in base:
+        #     plot_domain_size_increase_bar(name, num_candidates)
 
-    # print_domain_diversity(base, candidate_range)
+    print_domain_diversity(base, candidate_range, num_runs)

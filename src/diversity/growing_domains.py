@@ -1,4 +1,3 @@
-
 import csv
 import os
 
@@ -42,14 +41,14 @@ def load_domain_size_csv(num_candidates):
 
 
 
-def save_domain_size_csv(size, num_candidates):
-
+def save_domain_size_csv(size, num_candidates, run_idx=None):
     max_num_swaps = get_max_num_swaps(num_candidates)
     x_range = list(range(0, max_num_swaps + 1))
-
     os.makedirs('data', exist_ok=True)
-    csv_filename = f'data/domain_size_m{num_candidates}.csv'
-
+    if run_idx is not None:
+        csv_filename = f'data/domain_size/domain_size_m{num_candidates}_run{run_idx}.csv'
+    else:
+        csv_filename = f'data/domain_size/domain_size_m{num_candidates}.csv'
     with open(csv_filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['domain'] + list(x_range))
@@ -57,25 +56,18 @@ def save_domain_size_csv(size, num_candidates):
             writer.writerow([name] + size[name])
 
 
-
-def compute_domain_balls(base, num_candidates) -> None:
-    """Computes domain balls for given parameters and saves to CSV."""
-    balls = {name: [] for name in base}
-
-    for name in base:
-
-        domain = domains[name](num_candidates=num_candidates)
-
-        balls[name].append(len(domain))
-
-        max_num_swaps = get_max_num_swaps(num_candidates)
-
-        for _ in range(1, max_num_swaps+1):
-            if len(balls[name]) >= 2  and balls[name][-1] == balls[name][-2]: # no increase in size
-                balls[name].append(balls[name][-1])
-            else:
-                domain = extend_by_swaps(domain, 1)
-                balls[name].append(len(domain))
-
-    save_domain_size_csv(balls, num_candidates)
-
+def compute_domain_balls(base, num_candidates, num_runs=10) -> None:
+    """Computes domain balls for given parameters and saves each run to a separate CSV."""
+    for run_idx in range(num_runs):
+        balls = {name: [] for name in base}
+        for name in base:
+            domain = domains[name](num_candidates=num_candidates)
+            balls[name].append(len(domain))
+            max_num_swaps = get_max_num_swaps(num_candidates)
+            for _ in range(1, max_num_swaps+1):
+                if len(balls[name]) >= 2 and balls[name][-1] == balls[name][-2]:
+                    balls[name].append(balls[name][-1])
+                else:
+                    domain = extend_by_swaps(domain, 1)
+                    balls[name].append(len(domain))
+        save_domain_size_csv(balls, num_candidates, run_idx=run_idx)
