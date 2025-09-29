@@ -9,11 +9,11 @@ from src.diversity.diversity_utils import (
 
 
 
-def outer_diversity_growing_balls(domain, **kwargs):
+def outer_diversity_growing_balls(domain, num_candidates, **kwargs):
     """ Computes the outer diversity of a given set of votes using the growing balls method. """
     balls = compute_domain_balls(domain)
     balls_increase = compute_balls_increase(balls)
-    outer_diversity = outer_diversity_from_balls_increase(balls_increase, len(votes[0]))
+    outer_diversity = outer_diversity_from_balls_increase(balls_increase, num_candidates)
 
     return outer_diversity
 

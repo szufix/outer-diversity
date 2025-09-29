@@ -18,7 +18,10 @@ from src.max_diversity.main import find_optimal_facilities_sampled_simulated_ann
 import multiprocessing
 from src.print_utils import LABEL, MARKER, COLOR, LINE
 import re
-
+import os
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 def compute_single_peaked_diversity(num_candidates, num_samples):
     """Compute outer diversity for single-peaked domain."""
     domain = single_peaked_domain(num_candidates)
@@ -218,10 +221,7 @@ def plot_joint_diversity_comparison(with_max=True):
     Plot diversity comparison from joint CSV, showing mean and std across all runs.
     Also print the mean and std for each candidate count.
     """
-    import os
-    import pandas as pd
-    import numpy as np
-    import matplotlib.pyplot as plt
+
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
     csv_path = os.path.join(results_dir, '_single_peaked_joint.csv')
     df = pd.read_csv(csv_path)
@@ -272,6 +272,68 @@ def plot_joint_diversity_comparison(with_max=True):
     plt.show()
 
 
+def plot_joint_diversity_comparison_normalized():
+    """
+    Plot diversity comparison from joint CSV, showing mean and std across all runs.
+    Also print the mean and std for each candidate count.
+    """
+
+    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
+    csv_path = os.path.join(results_dir, '_single_peaked_joint.csv')
+    df = pd.read_csv(csv_path)
+    grouped = df.groupby('num_candidates')
+    candidate_range = np.array(sorted(df['num_candidates'].unique()))
+    sp_mean = grouped['sp_diversity'].mean().values
+    sp_std = grouped['sp_diversity'].std().values
+    gs_caterpillar_mean = grouped['gs_caterpillar_diversity'].mean().values
+    gs_caterpillar_std = grouped['gs_caterpillar_diversity'].std().values
+    gs_balanced_mean = grouped['gs_balanced_diversity'].mean().values
+    gs_balanced_std = grouped['gs_balanced_diversity'].std().values
+
+    opt_mean = grouped['optimal_diversity'].mean().values
+    opt_std = grouped['optimal_diversity'].std().values
+
+    # Normalize by optimal diversity
+    sp_mean = sp_mean / opt_mean
+    sp_std = sp_std / opt_mean
+    gs_caterpillar_mean = gs_caterpillar_mean / opt_mean
+    gs_caterpillar_std = gs_caterpillar_std / opt_mean
+    gs_balanced_mean = gs_balanced_mean / opt_mean
+    gs_balanced_std = gs_balanced_std / opt_mean
+
+    plt.figure(figsize=(9, 6))
+
+    plt.plot(candidate_range, gs_caterpillar_mean, label=LABEL['caterpillar'],
+             marker=MARKER['caterpillar'], linewidth=2, markersize=8,
+             color=COLOR['caterpillar'])
+    plt.fill_between(candidate_range, gs_caterpillar_mean - gs_caterpillar_std,
+                     gs_caterpillar_mean + gs_caterpillar_std, color=COLOR['caterpillar'],
+                     alpha=0.2)
+    plt.plot(candidate_range, gs_balanced_mean, label=LABEL['balanced'],
+             marker=MARKER['balanced'],
+             linewidth=2, markersize=8, color=COLOR['balanced'])
+    plt.fill_between(candidate_range, gs_balanced_mean - gs_balanced_std,
+                     gs_balanced_mean + gs_balanced_std, color=COLOR['balanced'], alpha=0.2)
+    plt.plot(candidate_range, sp_mean, label=LABEL['single_peaked'],
+             marker=MARKER['single_peaked'],
+             linewidth=2, markersize=8, color=COLOR['single_peaked'])
+    plt.fill_between(candidate_range, sp_mean - sp_std, sp_mean + sp_std,
+                     color=COLOR['single_peaked'], alpha=0.2)
+
+    plt.xlabel('Number of Candidates', fontsize=36)
+    plt.ylabel('Normalized Diversity', fontsize=36)
+    plt.legend(fontsize=28, loc='lower left')
+    plt.grid(True, alpha=0.3)
+    xticks_to_show = [2, 5, 8, 12, 16]
+    plt.xticks(xticks_to_show, fontsize=28)
+    plt.yticks(fontsize=28)
+    plt.ylim(0, 1)
+    plt.tight_layout()
+    plt.savefig('images/changing_m/changing_m_single_peaked_normalized.png', dpi=300,
+                bbox_inches='tight')
+    plt.show()
+
+
 def merge_single_peaked_results(candidate_range, runs_range):
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', 'single_peaked')
     output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', '_single_peaked_joint.csv')
@@ -296,11 +358,12 @@ def merge_single_peaked_results(candidate_range, runs_range):
 
 
 if __name__ == "__main__":
-    candidate_range = range(2, 20 + 1)
+    candidate_range = range(2, 14 + 1)
     num_samples = 1000
     max_iterations = 256
     runs_range = range(10)
     # run_fully_parallel_diversity_computation(
     #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
     # merge_single_peaked_results(candidate_range, runs_range)
-    plot_joint_diversity_comparison(with_max=True)
+    # plot_joint_diversity_comparison(with_max=True)
+    plot_joint_diversity_comparison_normalized()

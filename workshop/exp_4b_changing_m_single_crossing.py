@@ -184,6 +184,45 @@ def plot_joint_diversity_comparison(with_max=True):
     plt.show()
 
 
+
+def plot_joint_diversity_comparison_normalized():
+    """
+    Plot diversity comparison from joint CSV, showing mean and std across all runs.
+    Also print the mean and std for each candidate count.
+    """
+
+    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
+    csv_path = os.path.join(results_dir, '_single_crossing_joint.csv')
+    df = pd.read_csv(csv_path)
+    grouped = df.groupby('num_candidates')
+    candidate_range = np.array(sorted(df['num_candidates'].unique()))
+    sc_mean = grouped['sc_diversity'].mean().values
+    sc_std = grouped['sc_diversity'].std().values
+    opt_mean = grouped['optimal_diversity'].mean().values
+    opt_std = grouped['optimal_diversity'].std().values
+
+    # Normalize
+    sc_mean = sc_mean / opt_mean
+    sc_std = sc_std / opt_mean
+
+    plt.figure(figsize=(9, 6))
+
+
+    plt.plot(candidate_range, sc_mean, label=LABEL['single_crossing'], marker=MARKER['single_crossing'], linewidth=2, markersize=8, color=COLOR['single_crossing'])
+    plt.fill_between(candidate_range, sc_mean - sc_std, sc_mean + sc_std, color=COLOR['single_crossing'], alpha=0.2)
+    plt.xlabel('Number of Candidates', fontsize=36)
+    plt.ylabel('Normalized Diversity', fontsize=36)
+    plt.legend(fontsize=32, loc='upper right')
+    plt.grid(True, alpha=0.3)
+    xticks_to_show = [2, 5, 8, 12, 16, 20]
+    plt.xticks(xticks_to_show, fontsize=28)
+    plt.yticks(fontsize=28)
+    plt.ylim(0, 1)
+    plt.tight_layout()
+    plt.savefig('images/changing_m/changing_m_single_crossing_normalized.png', dpi=300, bbox_inches='tight')
+    plt.show()
+
+
 def compute_diversity_comparison_data_for_candidate_run(num_candidates, run, num_samples, max_iterations, with_max=True, results_dir=None):
     """
     Compute diversity data for a single run and num_candidates value, export to a separate CSV.
@@ -243,4 +282,5 @@ if __name__ == "__main__":
     # run_fully_parallel_diversity_computation(
     #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
     # merge_single_crossing_results()
-    plot_joint_diversity_comparison(with_max=True)
+    # plot_joint_diversity_comparison(with_max=True)
+    plot_joint_diversity_comparison_normalized()

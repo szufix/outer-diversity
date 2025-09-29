@@ -10,10 +10,10 @@ if __name__ == "__main__":
         # 'ilp',  # Use individual computation for ILP
         # 'greedy_ilp',
         # 'sa',
-        # 'smpl_sa'
+        'smpl_sa',
         # 'ic',
         'smpl_ic',
-        'smpl_holy_ic',
+        # 'smpl_holy_ic',
     ]
 
     # num_candidates = 4
@@ -22,29 +22,28 @@ if __name__ == "__main__":
     # num_candidates = 5
     # domain_sizes = range(1,120+1)
 
-    # num_candidates = 6
-    # domain_sizes = range(1,120+1)
+    num_candidates = 6
+    domain_sizes = range(1,720+1)
 
-    num_candidates = 8
-    domain_sizes = range(1,10+1)
+    # num_candidates = 8
+    # domain_sizes = range(1,1000+1)
 
     max_iterations = None
     num_samples = 1000
 
-
-    x = []
-    for method_name in methods:
-        # if method_name == 'ilp':
-        #     print(f'Method: {method_name} (using merged results)')
-        #     continue  # Skip computation, already merged
-
-        print('Method:', method_name)
-        start = time()
-        compute_optimal_nodes(num_candidates, domain_sizes, method_name,
-                              num_samples=num_samples, max_iterations=max_iterations)
-        end = time()
-        print(f'Time taken: {end - start} seconds')
-        x.append(end - start)
-    print(x)
+    # x = []
+    # for method_name in methods:
+    #     # if method_name == 'ilp':
+    #     #     print(f'Method: {method_name} (using merged results)')
+    #     #     continue  # Skip computation, already merged
+    #
+    #     print('Method:', method_name)
+    #     start = time()
+    #     compute_optimal_nodes(num_candidates, domain_sizes, method_name,
+    #                           num_samples=num_samples, max_iterations=max_iterations)
+    #     end = time()
+    #     print(f'Time taken: {end - start} seconds')
+    #     x.append(end - start)
+    # print(x)
 
     plot_optimal_nodes_results(num_candidates, methods, domain_sizes, with_structured_domains=False)

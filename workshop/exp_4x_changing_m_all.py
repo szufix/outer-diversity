@@ -94,7 +94,7 @@ def plot_joint_diversity_comparison(candidate_range):
 
 
 
-    plt.figure(figsize=(9, 6))
+    plt.figure(figsize=(12, 6))
 
     plt.plot(candidate_range, gs_caterpillar_mean[0:candidate_range[-1]],
              label=LABEL['caterpillar'],

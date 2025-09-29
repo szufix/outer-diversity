@@ -140,8 +140,10 @@ def plot_optimal_nodes_results(
         'ilp': {'marker': 'o', 'linestyle': '-', 'color': 'black', 'label': 'ILP (Optimal)', 'linewidth': 3, 'markersize': 5},
         'greedy_ilp': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'Greedy ILP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
         'sa': {'marker': 's', 'linestyle': '--', 'color': 'red', 'label': 'SA', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+        'ic': {'marker': '^', 'linestyle': '-', 'color': 'black', 'label': 'IC',
+                    'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
         'smpl_sa': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'Sampling SA', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-        'smpl_ic': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'Smpl IC', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+        'smpl_ic': {'marker': '^', 'linestyle': '-', 'color': 'black', 'label': 'Sampling IC', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
         'smpl_holy_ic': {'marker': '^', 'linestyle': '-', 'color': 'blue', 'label': 'Smpl Holy IC', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
     }
 
@@ -166,11 +168,11 @@ def plot_optimal_nodes_results(
         # Plot method results
         style = method_styles.get(method, {'marker': 'o', 'linestyle': '-', 'color': 'gray', 'label': method})
         plt.plot(domain_sizes, outer_diversity,
-                marker=style['marker'],
+                # marker=style['marker'],
                 linestyle=style['linestyle'],
                 color=style['color'],
-                linewidth=style.get('linewidth', 2),
-                markersize=style.get('markersize', 4),
+                linewidth=1, #style.get('linewidth', 2),
+                # markersize=style.get('markersize', 4),
                 alpha=style.get('alpha', 1.0),
                 label=style['label'])
 

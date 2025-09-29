@@ -2,6 +2,8 @@ import csv
 import os
 import math
 from typing import List, Dict
+import csv
+import os
 
 from src.max_diversity.bruteforce import find_optimal_facilities_bruteforce
 from src.max_diversity.ilp import find_optimal_ilp, find_optimal_facilities_milp_approx, \
@@ -20,14 +22,14 @@ def compute_optimal_nodes(
         method_name,
         max_iterations=None,
         num_samples=None,
-        start_with='ic'):
-    import csv
-    import os
+        start_with='ic',
+        threshold=None):
+
     results = []
 
     # Prepare output file at the beginning
     os.makedirs('data/optimal_nodes', exist_ok=True)
-    csv_filename = f'data/optimal_nodes/{method_name}_m{num_candidates}.csv'
+    csv_filename = f'data/optimal_nodes/{method_name}_m{num_candidates}_t{threshold}.csv'
     with open(csv_filename, 'w', newline='') as csvfile:
         fieldnames = ['domain_size', 'total_cost', 'optimal_nodes_int', 'optimal_nodes_votes']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -126,6 +128,44 @@ def compute_optimal_nodes(
 
     # Save all results to file (optional, for compatibility)
     # save_optimal_nodes_results(results, num_candidates, method_name)
+
+
+def compute_ic_threshold(
+        num_candidates,
+        method_name,
+        num_samples=None,
+        threshold=None,
+        run=None):
+
+    results = []
+
+    # Prepare output file at the beginning
+    os.makedirs('data/threshold_ic', exist_ok=True)
+    csv_filename = f'data/threshold_ic/{method_name}_m{num_candidates}_t{threshold}_r{run}.csv'
+    with open(csv_filename, 'w', newline='') as csvfile:
+        fieldnames = ['domain_size', 'total_cost', 'optimal_nodes_int', 'optimal_nodes_votes']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+
+    print(f"Computing {method_name} for m={num_candidates}, threshold={threshold}")
+
+    optimal_nodes_votes, total_cost = diversity_for_smpl_holy_ic(
+        num_candidates, math.factorial(num_candidates), threshold, num_samples=num_samples)
+
+    # Store results
+    result = {
+        'domain_size': len(optimal_nodes_votes),
+        'total_cost': total_cost,
+        'optimal_nodes_int': str([]),
+        'optimal_nodes_votes': str(optimal_nodes_votes),
+    }
+    results.append(result)
+
+    # Append result to file immediately
+    with open(csv_filename, 'a', newline='') as csvfile:
+        fieldnames = ['domain_size', 'total_cost', 'optimal_nodes_int', 'optimal_nodes_votes']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writerow(result)
 
 
 def compute_optimal_nodes_single(num_candidates: int, domain_size: int, method_name: str):
@@ -307,9 +347,9 @@ def save_optimal_nodes_results(results: List[Dict], num_candidates: int, method_
         method_name: Method name for filename
     """
     # Create directory if it doesn't exist
-    os.makedirs('data/optimal_nodes', exist_ok=True)
+    os.makedirs('data/threshold_ic', exist_ok=True)
 
-    csv_filename = f'data/optimal_nodes/{method_name}_m{num_candidates}.csv'
+    csv_filename = f'data/threshold_ic/{method_name}_m{num_candidates}.csv'
 
     with open(csv_filename, 'w', newline='') as csvfile:
         if results:
