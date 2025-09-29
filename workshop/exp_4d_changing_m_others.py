@@ -3,7 +3,7 @@ import glob
 import math
 import os
 from time import time
-
+import re
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -110,14 +110,38 @@ def merge_results(name):
 
 
 
+def merge_results(name, candidate_range, runs_range):
+    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', 'other')
+    output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', f'_{name}_joint.csv')
+    all_files = glob.glob(os.path.join(results_dir, f'_{name}_*_run*.csv'))
+
+    filtered_files = []
+    for f in all_files:
+        match = re.search(fr'_{name}_(\d+)_run(\d+)\.csv', os.path.basename(f))
+        if match:
+            candidate = int(match.group(1))
+            run = int(match.group(2))
+            if candidate in candidate_range and run in runs_range:
+                filtered_files.append(f)
+
+    dfs = [pd.read_csv(f) for f in filtered_files]
+    if dfs:
+        merged = pd.concat(dfs, ignore_index=True)
+        merged.to_csv(output_path, index=False)
+        print(f"Merged {len(filtered_files)} files into {output_path}")
+    else:
+        print("No files matched the given candidate and run ranges.")
+
+
+
 if __name__ == "__main__":
 
     names = ['spoc', 'euclidean_3d']
-    candidate_range = range(2, 20+1)
+    candidate_range = range(2, 14+1)
     num_samples = 1000
-    runs_range = [1]
+    runs_range = range(5)
     for name in names:
-        run_fully_parallel_diversity_computation(
-            name, candidate_range, num_samples, runs_range)
+        # run_fully_parallel_diversity_computation(
+        #     name, candidate_range, num_samples, runs_range)
 
-        # merge_results(name)
+        merge_results(name, candidate_range, runs_range)

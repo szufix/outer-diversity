@@ -163,23 +163,24 @@ if __name__ == "__main__":
 
     base = [
         'euclidean_3d',
-        'euclidean_2d',
-        'spoc',
-        'sp_double_forked',
-        'caterpillar',
-        'balanced',
-        'single_peaked',
-        'single_crossing',
-        'euclidean_1d',
-        'ext_single_vote',
-        'single_vote',
+        # 'euclidean_2d',
+        # 'spoc',
+        # 'sp_double_forked',
+        # 'caterpillar',
+        # 'balanced',
+        # 'single_peaked',
+        # 'single_crossing',
+        # 'euclidean_1d',
+        # 'ext_single_vote',
+        # 'single_vote',
     ]
 
-    candidate_range = [6,8]
-    num_runs = 10
+    candidate_range = [10, 11, 12]
+    num_runs = 1
 
-    # for num_candidates in candidate_range:
-    #     compute_domain_balls(base, num_candidates, num_runs)
+    for num_candidates in candidate_range:
+        print(num_candidates)
+        compute_domain_balls(base, num_candidates, num_runs)
 
         # plot_domain_size_total(base, num_candidates)
         # plot_domain_size_increase(base, num_candidates)

@@ -17,17 +17,19 @@ from src.domain.group_separable import (
 )
 from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
 import multiprocessing
+import os
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
-
-def plot_joint_diversity_comparison():
+def plot_joint_diversity_comparison(candidate_range):
     """
     Plot diversity comparison from joint CSV, showing mean and std across all runs.
     Also print the mean and std for each candidate count.
     """
-    import os
-    import pandas as pd
-    import numpy as np
-    import matplotlib.pyplot as plt
+
+    max_candidate = candidate_range[-1]
+
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
     csv_path = os.path.join(results_dir, '_single_peaked_joint.csv')
     df = pd.read_csv(csv_path)
@@ -69,47 +71,75 @@ def plot_joint_diversity_comparison():
     csv_path_3d = os.path.join(results_dir, '_euclidean_3d_joint.csv')
     df_3d = pd.read_csv(csv_path_3d)
     grouped_3d = df_3d.groupby('num_candidates')
-    threed_mean = grouped_3d['3d_diversity'].mean().values
-    threed_std = grouped_3d['3d_diversity'].std().values
+    threed_mean = grouped_3d['euclidean_3d_diversity'].mean().values
+    threed_std = grouped_3d['euclidean_3d_diversity'].std().values
     threed_candidate_range = np.array(sorted(df_3d['num_candidates'].unique()))
+
+    gs_balanced_mean = gs_balanced_mean[0:max_candidate]
+    gs_balanced_std = gs_balanced_std[0:max_candidate]
+    gs_caterpillar_mean = gs_caterpillar_mean[0:max_candidate]
+    gs_caterpillar_std = gs_caterpillar_std[0:max_candidate]
+    sp_mean = sp_mean[0:max_candidate]
+    sp_std = sp_std[0:max_candidate]
+    sc_mean = sc_mean[0:max_candidate]
+    sc_std = sc_std[0:max_candidate]
+    spoc_mean = spoc_mean[0:max_candidate]
+    spoc_std = spoc_std[0:max_candidate]
+    threed_mean = threed_mean[0:max_candidate]
+    threed_std = threed_std[0:max_candidate]
+    twod_mean = twod_mean[0:max_candidate]
+    twod_std = twod_std[0:max_candidate]
+
+
+
+
 
     plt.figure(figsize=(9, 6))
 
-    plt.plot(twod_candidate_range, twod_mean, label='2D-Sqr.',
-             marker=MARKER['euclidean_2d'], linewidth=2, markersize=8, color=COLOR['euclidean_2d'])
-    plt.fill_between(twod_candidate_range, twod_mean - twod_std, twod_mean + twod_std,
-                     color=COLOR['euclidean_2d'], alpha=0.2)
-    plt.plot(candidate_range, gs_caterpillar_mean, label=LABEL['caterpillar'],
+    plt.plot(candidate_range, gs_caterpillar_mean[0:candidate_range[-1]],
+             label=LABEL['caterpillar'],
              marker=MARKER['caterpillar'], linewidth=2, markersize=8, color=COLOR['caterpillar'])
     plt.fill_between(candidate_range, gs_caterpillar_mean - gs_caterpillar_std,
                      gs_caterpillar_mean + gs_caterpillar_std, color=COLOR['caterpillar'],
                      alpha=0.2)
+
+    plt.plot(candidate_range, threed_mean, label=LABEL['euclidean_3d'],
+             marker=MARKER['euclidean_3d'], linewidth=2, markersize=8, color=COLOR['euclidean_3d'])
+    plt.fill_between(candidate_range, threed_mean - threed_std, threed_mean + threed_std,
+                     color=COLOR['euclidean_3d'], alpha=0.2)
+
+    plt.plot(candidate_range, spoc_mean, label=LABEL['spoc'],
+             marker=MARKER['spoc'], linewidth=2, markersize=8, color=COLOR['spoc'])
+    plt.fill_between(candidate_range, spoc_mean - spoc_std, spoc_mean + spoc_std,
+                     color=COLOR['spoc'], alpha=0.2)
+
+    plt.plot(candidate_range, twod_mean, label='2D-Sqr.',
+             marker=MARKER['euclidean_2d'], linewidth=2, markersize=8, color=COLOR['euclidean_2d'])
+    plt.fill_between(candidate_range, twod_mean - twod_std, twod_mean + twod_std,
+                     color=COLOR['euclidean_2d'], alpha=0.2)
+
     plt.plot(candidate_range, gs_balanced_mean, label=LABEL['balanced'], marker=MARKER['balanced'],
              linewidth=2, markersize=8, color=COLOR['balanced'])
     plt.fill_between(candidate_range, gs_balanced_mean - gs_balanced_std,
                      gs_balanced_mean + gs_balanced_std, color=COLOR['balanced'], alpha=0.2)
+
     plt.plot(candidate_range, sp_mean, label=LABEL['single_peaked'], marker=MARKER['single_peaked'],
              linewidth=2, markersize=8, color=COLOR['single_peaked'])
     plt.fill_between(candidate_range, sp_mean - sp_std, sp_mean + sp_std,
                      color=COLOR['single_peaked'], alpha=0.2)
-    plt.plot(sc_candidate_range, sc_mean, label=LABEL['single_crossing'],
+
+    plt.plot(candidate_range, sc_mean, label=LABEL['single_crossing'],
              marker=MARKER['single_crossing'], linewidth=2, markersize=8,
              color=COLOR['single_crossing'])
-    plt.fill_between(sc_candidate_range, sc_mean - sc_std, sc_mean + sc_std,
+    plt.fill_between(candidate_range, sc_mean - sc_std, sc_mean + sc_std,
                      color=COLOR['single_crossing'], alpha=0.2)
-    plt.plot(spoc_candidate_range, spoc_mean, label=LABEL['spoc'],
-             marker=MARKER['spoc'], linewidth=2, markersize=8, color=COLOR['spoc'])
-    plt.fill_between(spoc_candidate_range, spoc_mean - spoc_std, spoc_mean + spoc_std,
-                     color=COLOR['spoc'], alpha=0.2)
-    plt.plot(threed_candidate_range, threed_mean, label=LABEL['euclidean_3d'],
-             marker=MARKER['euclidean_3d'], linewidth=2, markersize=8, color=COLOR['euclidean_3d'])
-    plt.fill_between(threed_candidate_range, threed_mean - threed_std, threed_mean + threed_std,
-                     color=COLOR['euclidean_3d'], alpha=0.2)
+
+
     plt.xlabel('Number of Candidates', fontsize=36)
     plt.ylabel('Outer Diversity', fontsize=36)
-    plt.legend(fontsize=32, loc='upper right')
+    plt.legend(fontsize=32, loc='center left', bbox_to_anchor=(1.02, 0.5), borderaxespad=0)
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 12, 16, 20]
+    xticks_to_show = [2, 5, 8, 12, 16]
     plt.xticks(xticks_to_show, fontsize=28)
     plt.yticks(fontsize=28)
     plt.ylim(0, 1)
@@ -120,8 +150,8 @@ def plot_joint_diversity_comparison():
 
 
 if __name__ == "__main__":
-    candidate_range = range(2, 7 + 1)
+    candidate_range = range(14)
     num_samples = 1000
     max_iterations = 256
-    num_runs = 10
-    plot_joint_diversity_comparison()
+    num_runs = 5
+    plot_joint_diversity_comparison(candidate_range)

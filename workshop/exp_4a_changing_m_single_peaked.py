@@ -17,7 +17,7 @@ from src.domain.group_separable import (
 from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
 import multiprocessing
 from src.print_utils import LABEL, MARKER, COLOR, LINE
-
+import re
 
 def compute_single_peaked_diversity(num_candidates, num_samples):
     """Compute outer diversity for single-peaked domain."""
@@ -261,9 +261,9 @@ def plot_joint_diversity_comparison(with_max=True):
 
     plt.xlabel('Number of Candidates', fontsize=36)
     plt.ylabel('Outer Diversity', fontsize=36)
-    plt.legend(fontsize=32, loc='upper right')
+    plt.legend(fontsize=28, loc='lower left')
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 12, 16, 20]
+    xticks_to_show = [2, 5, 8, 12, 16]
     plt.xticks(xticks_to_show, fontsize=28)
     plt.yticks(fontsize=28)
     plt.ylim(0, 1)
@@ -272,23 +272,35 @@ def plot_joint_diversity_comparison(with_max=True):
     plt.show()
 
 
-def merge_single_peaked_results():
+def merge_single_peaked_results(candidate_range, runs_range):
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', 'single_peaked')
-    output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m',
-                               '_single_peaked_joint.csv')
+    output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', '_single_peaked_joint.csv')
     all_files = glob.glob(os.path.join(results_dir, '_single_peaked_*_run*.csv'))
-    dfs = [pd.read_csv(f) for f in all_files]
-    merged = pd.concat(dfs, ignore_index=True)
-    merged.to_csv(output_path, index=False)
-    print(f"Merged {len(all_files)} files into {output_path}")
+
+    filtered_files = []
+    for f in all_files:
+        match = re.search(r'_single_peaked_(\d+)_run(\d+)\.csv', os.path.basename(f))
+        if match:
+            candidate = int(match.group(1))
+            run = int(match.group(2))
+            if candidate in candidate_range and run in runs_range:
+                filtered_files.append(f)
+
+    dfs = [pd.read_csv(f) for f in filtered_files]
+    if dfs:
+        merged = pd.concat(dfs, ignore_index=True)
+        merged.to_csv(output_path, index=False)
+        print(f"Merged {len(filtered_files)} files into {output_path}")
+    else:
+        print("No files matched the given candidate and run ranges.")
 
 
 if __name__ == "__main__":
-    candidate_range = range(2, 7 + 1)
+    candidate_range = range(2, 20 + 1)
     num_samples = 1000
     max_iterations = 256
-    num_runs = 10
+    runs_range = range(10)
     # run_fully_parallel_diversity_computation(
     #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
-    # merge_single_peaked_results()
+    # merge_single_peaked_results(candidate_range, runs_range)
     plot_joint_diversity_comparison(with_max=True)
