@@ -263,7 +263,7 @@ def plot_joint_diversity_comparison(with_max=True):
     plt.ylabel('Outer Diversity', fontsize=36)
     plt.legend(fontsize=28, loc='lower left')
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 12, 16]
+    xticks_to_show = [2, 5, 8, 11, 14]
     plt.xticks(xticks_to_show, fontsize=28)
     plt.yticks(fontsize=28)
     plt.ylim(0, 1)
@@ -324,7 +324,7 @@ def plot_joint_diversity_comparison_normalized():
     plt.ylabel('Normalized Diversity', fontsize=36)
     plt.legend(fontsize=28, loc='lower left')
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 12, 16]
+    xticks_to_show = [2, 5, 8, 11, 14]
     plt.xticks(xticks_to_show, fontsize=28)
     plt.yticks(fontsize=28)
     plt.ylim(0, 1)
@@ -334,14 +334,24 @@ def plot_joint_diversity_comparison_normalized():
     plt.show()
 
 
-def merge_single_peaked_results(candidate_range, runs_range):
+def merge_single_peaked_results(candidate_range, runs_range, with_max):
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', 'single_peaked')
-    output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', '_single_peaked_joint.csv')
-    all_files = glob.glob(os.path.join(results_dir, '_single_peaked_*_run*.csv'))
+    if with_max:
+        output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m',
+                                   '_single_peaked_joint.csv')
+        all_files = glob.glob(os.path.join(results_dir, '_single_peaked_*_run*.csv'))
+    else:
+        output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m',
+                                   '_single_peaked_joint_no_max.csv')
+        all_files = glob.glob(os.path.join(results_dir, '_single_peaked_*_run*_no_max.csv'))
 
     filtered_files = []
     for f in all_files:
-        match = re.search(r'_single_peaked_(\d+)_run(\d+)\.csv', os.path.basename(f))
+        if with_max:
+            match = re.search(r'_single_peaked_(\d+)_run(\d+)\.csv', os.path.basename(f))
+        else:
+            match = re.search(r'_single_peaked_(\d+)_run(\d+)_no_max\.csv', os.path.basename(f))
+
         if match:
             candidate = int(match.group(1))
             run = int(match.group(2))
@@ -364,6 +374,8 @@ if __name__ == "__main__":
     runs_range = range(10)
     # run_fully_parallel_diversity_computation(
     #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
-    # merge_single_peaked_results(candidate_range, runs_range)
+    # merge_single_peaked_results(candidate_range, runs_range, with_max=True)
     # plot_joint_diversity_comparison(with_max=True)
-    plot_joint_diversity_comparison_normalized()
+    # plot_joint_diversity_comparison_normalized()
+
+    merge_single_peaked_results(range(2, 17 + 1), runs_range, with_max=False)

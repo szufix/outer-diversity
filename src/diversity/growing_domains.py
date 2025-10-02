@@ -23,6 +23,7 @@ domains = {
     'spoc': spoc_domain,
     'ext_single_vote': ext_single_vote_domain,
     'single_vote': single_vote_domain,
+    'largest_condorcet': largest_condorcet_domain,
 }
 
 

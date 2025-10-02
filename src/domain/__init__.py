@@ -33,6 +33,14 @@ from src.domain.special import (
     ext_single_vote_domain,
 )
 
+from src.domain.largest_condorcet import (
+    largest_condorcet_domain,
+)
+
+from src.domain.fishburn import (
+    fishburn_domain
+)
+
 __all__ = [
     'single_crossing_domain',
     'single_peaked_domain',
@@ -55,4 +63,6 @@ __all__ = [
     'ext_sp_double_forked_domain',
     'single_vote_domain',
     'ext_single_vote_domain',
+    'largest_condorcet_domain',
+    'fishburn_domain',
 ]

@@ -15,9 +15,9 @@ if __name__ == "__main__":
     max_iterations = None
     num_samples = 1000
 
-    for run in range(3):
+    for run in range(10):
         print(f'Run {run}')
-        for threshold in reversed(range(20,25+1)):
+        for threshold in reversed(range(10,25+1)):
             print(f'Threshold: {threshold}')
             for method_name in methods:
                 compute_ic_threshold(num_candidates, method_name, threshold=threshold,

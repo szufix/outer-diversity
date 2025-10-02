@@ -27,7 +27,9 @@ LABEL = {
     'single_vote': 'Single Vote',
     'ext_single_vote': 'Ext. Single Vote',
 
-    'max': '~Max'
+    'max': '~Max',
+    'largest_condorcet': 'Largest Condorcet',
+    'fishburn': 'Fishburn',
 }
 
 LINE = {
@@ -46,7 +48,9 @@ LINE = {
     'single_vote': 'solid',
     'ext_single_vote': 'solid',
 
-    'max': 'dashed'
+    'max': 'dashed',
+    'largest_condorcet': 'solid',
+    'fishburn': 'solid',
 }
 
 MARKER = {
@@ -65,7 +69,9 @@ MARKER = {
     'single_vote': '*',
     'ext_single_vote': '*',
 
-    'max': 'o'
+    'max': 'o',
+    'largest_condorcet': 'o',
+    'fishburn': 'o',
 }
 
 
@@ -87,5 +93,7 @@ COLOR = {
     'single_vote': 'black',
     'ext_single_vote': 'gray',
 
-    'max': 'black'
+    'max': 'black',
+    'largest_condorcet': 'tab:cyan',
+    'fishburn': 'tab:cyan',
 }

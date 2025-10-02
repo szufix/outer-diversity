@@ -131,6 +131,10 @@ def plot_optimal_nodes_results(
     if with_structured_domains:
         domain_data = load_domain_size_data(num_candidates)
 
+    # remove 'euclidean_3d' if it exists
+    if with_structured_domains and 'euclidean_3d' in domain_data:
+        del domain_data['euclidean_3d']
+
     # Create the plot with larger font sizes
     plt.figure(figsize=(10, 6))
     plt.rcParams.update({'font.size': 14})  # Set default font size

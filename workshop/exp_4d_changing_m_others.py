@@ -98,15 +98,15 @@ def run_fully_parallel_diversity_computation(name, candidate_range, num_samples,
         p.join()
 
 
-def merge_results(name):
-    results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', 'other')
-    output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', f'_{name}_joint.csv')
-    all_files = glob.glob(os.path.join(results_dir, f'_{name}_*_run*.csv'))
-    print(all_files)
-    dfs = [pd.read_csv(f) for f in all_files]
-    merged = pd.concat(dfs, ignore_index=True)
-    merged.to_csv(output_path, index=False)
-    print(f"Merged {len(all_files)} files into {output_path}")
+# def merge_results(name):
+#     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', 'other')
+#     output_path = os.path.join(os.path.dirname(__file__), 'data', 'changing_m', f'_{name}_joint.csv')
+#     all_files = glob.glob(os.path.join(results_dir, f'_{name}_*_run*.csv'))
+#     print(all_files)
+#     dfs = [pd.read_csv(f) for f in all_files]
+#     merged = pd.concat(dfs, ignore_index=True)
+#     merged.to_csv(output_path, index=False)
+#     print(f"Merged {len(all_files)} files into {output_path}")
 
 
 
@@ -137,9 +137,9 @@ def merge_results(name, candidate_range, runs_range):
 if __name__ == "__main__":
 
     names = ['spoc', 'euclidean_3d']
-    candidate_range = range(2, 14+1)
+    candidate_range = range(2, 17+1)
     num_samples = 1000
-    runs_range = range(5)
+    runs_range = [0]
     for name in names:
         # run_fully_parallel_diversity_computation(
         #     name, candidate_range, num_samples, runs_range)

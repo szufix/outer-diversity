@@ -175,7 +175,7 @@ def plot_joint_diversity_comparison(with_max=True):
     plt.ylabel('Outer Diversity', fontsize=36)
     plt.legend(fontsize=32, loc='upper right')
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 12, 16, 20]
+    xticks_to_show = [2, 5, 8, 11, 14]
     plt.xticks(xticks_to_show, fontsize=28)
     plt.yticks(fontsize=28)
     plt.ylim(0, 1)
@@ -214,7 +214,7 @@ def plot_joint_diversity_comparison_normalized():
     plt.ylabel('Normalized Diversity', fontsize=36)
     plt.legend(fontsize=32, loc='upper right')
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 12, 16, 20]
+    xticks_to_show = [2, 5, 8, 11, 14]
     plt.xticks(xticks_to_show, fontsize=28)
     plt.yticks(fontsize=28)
     plt.ylim(0, 1)
@@ -275,12 +275,12 @@ def merge_single_crossing_results():
     print(f"Merged {len(all_files)} files into {output_path}")
 
 if __name__ == "__main__":
-    candidate_range = range(2, 20+1)
+    candidate_range = range(2, 14+1)
     num_samples = 1000
     max_iterations = 256
     num_runs = 10
     # run_fully_parallel_diversity_computation(
     #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
     # merge_single_crossing_results()
-    # plot_joint_diversity_comparison(with_max=True)
+    plot_joint_diversity_comparison(with_max=True)
     plot_joint_diversity_comparison_normalized()

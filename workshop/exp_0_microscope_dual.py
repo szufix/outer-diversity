@@ -43,6 +43,8 @@ samplers = {
 
     # 'sc_with_gaps': single_crossing_with_gaps,
     # 'weighted_sc_with_gaps': weighted_single_crossing_with_gaps,
+    'largest_condorcet': largest_condorcet_domain,
+    'fishburn': fishburn_domain,
 }
 
 COLORS = ['black',
@@ -273,20 +275,22 @@ max_pop = 200000
 
 
 base_sorted = [
-    'euclidean_3d',
-    'euclidean_2d',
-    'spoc',
-    'sp_double_forked',
-    'caterpillar',
-    'balanced',
-    'single_peaked',
-    'single_crossing',
-    'euclidean_1d',
+    # 'euclidean_3d',
+    # 'euclidean_2d',
+    # 'spoc',
+    # 'sp_double_forked',
+    # 'caterpillar',
+    # 'balanced',
+    # 'single_peaked',
+    # 'single_crossing',
+    # 'euclidean_1d',
+    # 'largest_condorcet',
+    'fishburn',
 ]
 
 
 # WITHOUT IC
-# compute_microscope(num_candidates, base_sorted)
+compute_microscope(num_candidates, base_sorted)
 plot_microscope(base_sorted, num_candidates, min_pop, max_pop)
 paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
 create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}.png')

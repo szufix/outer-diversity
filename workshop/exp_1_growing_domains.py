@@ -162,7 +162,8 @@ def plot_domain_size_increase_bar(name, num_candidates) -> None:
 if __name__ == "__main__":
 
     base = [
-        'euclidean_3d',
+        # 'euclidean_3d',
+        # 'euclidean_3d',
         # 'euclidean_2d',
         # 'spoc',
         # 'sp_double_forked',
@@ -173,17 +174,19 @@ if __name__ == "__main__":
         # 'euclidean_1d',
         # 'ext_single_vote',
         # 'single_vote',
+        'largest_condorcet'
     ]
 
-    candidate_range = [10, 11, 12]
+    # candidate_range = [10, 11, 12]
+    candidate_range = [8]
     num_runs = 1
 
     for num_candidates in candidate_range:
         print(num_candidates)
         compute_domain_balls(base, num_candidates, num_runs)
 
-        # plot_domain_size_total(base, num_candidates)
-        # plot_domain_size_increase(base, num_candidates)
+        plot_domain_size_total(base, num_candidates)
+        plot_domain_size_increase(base, num_candidates)
 
         # for name in base:
         #     plot_domain_size_increase_bar(name, num_candidates)

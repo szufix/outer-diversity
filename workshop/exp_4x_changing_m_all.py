@@ -29,9 +29,10 @@ def plot_joint_diversity_comparison(candidate_range):
     """
 
     max_candidate = candidate_range[-1]
+    # max_candidate -=
 
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
-    csv_path = os.path.join(results_dir, '_single_peaked_joint.csv')
+    csv_path = os.path.join(results_dir, '_single_peaked_joint_no_max.csv')
     df = pd.read_csv(csv_path)
     grouped = df.groupby('num_candidates')
     candidate_range = np.array(sorted(df['num_candidates'].unique()))
@@ -51,7 +52,7 @@ def plot_joint_diversity_comparison(candidate_range):
     sc_candidate_range = np.array(sorted(df_sc['num_candidates'].unique()))
 
     # Read euclidean 2d results
-    csv_path_2d = os.path.join(results_dir, '_euclidean_2d_joint.csv')
+    csv_path_2d = os.path.join(results_dir, '_euclidean_2d_joint_no_max.csv')
     df_2d = pd.read_csv(csv_path_2d)
     grouped_2d = df_2d.groupby('num_candidates')
     twod_mean = grouped_2d['2d_diversity'].mean().values
@@ -90,13 +91,14 @@ def plot_joint_diversity_comparison(candidate_range):
     twod_mean = twod_mean[0:max_candidate]
     twod_std = twod_std[0:max_candidate]
 
-
-
+    print(len(candidate_range))
+    print(len(gs_balanced_mean))
+    print(len(threed_mean))
 
 
     plt.figure(figsize=(12, 6))
 
-    plt.plot(candidate_range, gs_caterpillar_mean[0:candidate_range[-1]],
+    plt.plot(candidate_range, gs_caterpillar_mean,
              label=LABEL['caterpillar'],
              marker=MARKER['caterpillar'], linewidth=2, markersize=8, color=COLOR['caterpillar'])
     plt.fill_between(candidate_range, gs_caterpillar_mean - gs_caterpillar_std,
@@ -139,7 +141,7 @@ def plot_joint_diversity_comparison(candidate_range):
     plt.ylabel('Outer Diversity', fontsize=36)
     plt.legend(fontsize=32, loc='center left', bbox_to_anchor=(1.02, 0.5), borderaxespad=0)
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 12, 16]
+    xticks_to_show = [2, 5, 8, 11, 14, 17]
     plt.xticks(xticks_to_show, fontsize=28)
     plt.yticks(fontsize=28)
     plt.ylim(0, 1)
@@ -150,8 +152,8 @@ def plot_joint_diversity_comparison(candidate_range):
 
 
 if __name__ == "__main__":
-    candidate_range = range(14)
+    candidate_range = range(2,17)
     num_samples = 1000
     max_iterations = 256
-    num_runs = 5
+    num_runs = 1
     plot_joint_diversity_comparison(candidate_range)

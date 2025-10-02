@@ -22,11 +22,11 @@ if __name__ == "__main__":
     # num_candidates = 5
     # domain_sizes = range(1,120+1)
 
-    num_candidates = 6
-    domain_sizes = range(1,720+1)
+    # num_candidates = 6
+    # domain_sizes = range(1,720+1)
 
-    # num_candidates = 8
-    # domain_sizes = range(1,1000+1)
+    num_candidates = 8
+    domain_sizes = range(1,800+1)
 
     max_iterations = None
     num_samples = 1000
@@ -46,4 +46,5 @@ if __name__ == "__main__":
     #     x.append(end - start)
     # print(x)
 
-    plot_optimal_nodes_results(num_candidates, methods, domain_sizes, with_structured_domains=False)
+    plot_optimal_nodes_results(num_candidates, methods, domain_sizes,
+                               with_structured_domains=True)

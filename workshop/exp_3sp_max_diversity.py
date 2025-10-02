@@ -1,4 +1,7 @@
 
+import sys
+from time import time
+
 from src.max_diversity.main import (
     compute_optimal_nodes,
     compute_optimal_nodes_single,
@@ -8,8 +11,6 @@ from src.max_diversity.main import (
 from src.max_diversity.plot import plot_optimal_nodes_results
 
 
-import sys
-from time import time
 
 def compute_single_domain_size():
     """
@@ -59,6 +60,7 @@ def merge_results():
     else:
         print("No results available to merge.")
 
+
 def check_status():
     """
     Check status of individual computations.
@@ -75,6 +77,7 @@ def check_status():
 
     domain_sizes = list(range(1, max_domain_size + 1))
     check_individual_results_status(num_candidates, method_name, domain_sizes)
+
 
 if __name__ == "__main__":
 
