@@ -96,7 +96,7 @@ def plot_joint_diversity_comparison(candidate_range):
     print(len(threed_mean))
 
 
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(8, 12))
 
     plt.plot(candidate_range, gs_caterpillar_mean,
              label=LABEL['caterpillar'],
@@ -139,12 +139,12 @@ def plot_joint_diversity_comparison(candidate_range):
 
     plt.xlabel('Number of Candidates', fontsize=36)
     plt.ylabel('Outer Diversity', fontsize=36)
-    plt.legend(fontsize=32, loc='center left', bbox_to_anchor=(1.02, 0.5), borderaxespad=0)
+    plt.legend(fontsize=24, loc='lower left')
     plt.grid(True, alpha=0.3)
     xticks_to_show = [2, 5, 8, 11, 14, 17]
     plt.xticks(xticks_to_show, fontsize=28)
     plt.yticks(fontsize=28)
-    plt.ylim(0, 1)
+    plt.ylim([-0.05, 1.05])
     plt.tight_layout()
     plt.savefig('images/changing_m/changing_m_all_domains_with_max.png', dpi=300,
                 bbox_inches='tight')

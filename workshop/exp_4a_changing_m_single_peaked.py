@@ -238,7 +238,7 @@ def plot_joint_diversity_comparison(with_max=True):
         opt_std = grouped['optimal_diversity'].std().values
     # Plot
 
-    plt.figure(figsize=(9, 6))
+    plt.figure(figsize=(6, 6))
     if with_max:
         plt.plot(candidate_range, opt_mean, label=LABEL['max'], marker=MARKER['max'], linewidth=2,
                  markersize=8, color=COLOR['max'], linestyle=LINE['max'])
@@ -260,12 +260,14 @@ def plot_joint_diversity_comparison(with_max=True):
                      color=COLOR['single_peaked'], alpha=0.2)
 
     plt.xlabel('Number of Candidates', fontsize=36)
-    plt.ylabel('Outer Diversity', fontsize=36)
+    # plt.ylabel('Outer Diversity', fontsize=36)
     plt.legend(fontsize=28, loc='lower left')
     plt.grid(True, alpha=0.3)
     xticks_to_show = [2, 5, 8, 11, 14]
     plt.xticks(xticks_to_show, fontsize=28)
-    plt.yticks(fontsize=28)
+
+    plt.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ['', '', '','','','',], fontsize=28)
+
     plt.ylim(0, 1)
     plt.tight_layout()
     plt.savefig('images/changing_m/changing_m_single_peaked_with_max.png', dpi=300, bbox_inches='tight')
@@ -375,7 +377,7 @@ if __name__ == "__main__":
     # run_fully_parallel_diversity_computation(
     #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
     # merge_single_peaked_results(candidate_range, runs_range, with_max=True)
-    # plot_joint_diversity_comparison(with_max=True)
+    plot_joint_diversity_comparison(with_max=True)
     # plot_joint_diversity_comparison_normalized()
 
-    merge_single_peaked_results(range(2, 17 + 1), runs_range, with_max=False)
+    # merge_single_peaked_results(range(2, 17 + 1), runs_range, with_max=False)

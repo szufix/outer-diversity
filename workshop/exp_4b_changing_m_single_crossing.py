@@ -138,17 +138,20 @@ def import_diversity_comparison_results():
         raise FileNotFoundError(f"Results file not found: {csv_path}")
     return pd.read_csv(csv_path)
 
-def plot_joint_diversity_comparison(with_max=True):
+def plot_joint_diversity_comparison(candidate_range, with_max=True):
     """
     Plot diversity comparison from joint CSV, showing mean and std across all runs.
     Also print the mean and std for each candidate count.
     """
 
+    max_candidate = candidate_range[-1]
+
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
     csv_path = os.path.join(results_dir, '_single_crossing_joint.csv')
     df = pd.read_csv(csv_path)
     grouped = df.groupby('num_candidates')
-    candidate_range = np.array(sorted(df['num_candidates'].unique()))
+    candidate_range = range(2, 14+1)
+
     sc_mean = grouped['sc_diversity'].mean().values
     sc_std = grouped['sc_diversity'].std().values
     if with_max:
@@ -162,7 +165,17 @@ def plot_joint_diversity_comparison(with_max=True):
     #     else:
     #         print(f"{num_candidates:>13} | {sc_mean[i]:.4f} | {sc_std[i]:.4f}")
     # # Plot
-    plt.figure(figsize=(9, 6))
+
+
+    sc_mean = sc_mean[0:max_candidate]
+    sc_std = sc_std[0:max_candidate]
+    if with_max:
+        opt_mean = opt_mean[0:max_candidate]
+        opt_std = opt_std[0:max_candidate]
+
+    print(candidate_range)
+
+    plt.figure(figsize=(7, 6))
     if with_max:
         plt.plot(candidate_range, opt_mean, label=LABEL['max'], marker=MARKER['max'], linewidth=2,
                  markersize=8, color=COLOR['max'], linestyle=LINE['max'])
@@ -173,7 +186,7 @@ def plot_joint_diversity_comparison(with_max=True):
     plt.fill_between(candidate_range, sc_mean - sc_std, sc_mean + sc_std, color=COLOR['single_crossing'], alpha=0.2)
     plt.xlabel('Number of Candidates', fontsize=36)
     plt.ylabel('Outer Diversity', fontsize=36)
-    plt.legend(fontsize=32, loc='upper right')
+    plt.legend(fontsize=28, loc='upper right')
     plt.grid(True, alpha=0.3)
     xticks_to_show = [2, 5, 8, 11, 14]
     plt.xticks(xticks_to_show, fontsize=28)
@@ -275,12 +288,12 @@ def merge_single_crossing_results():
     print(f"Merged {len(all_files)} files into {output_path}")
 
 if __name__ == "__main__":
-    candidate_range = range(2, 14+1)
+    candidate_range = range(2, 14)
     num_samples = 1000
     max_iterations = 256
     num_runs = 10
     # run_fully_parallel_diversity_computation(
     #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
     # merge_single_crossing_results()
-    plot_joint_diversity_comparison(with_max=True)
-    plot_joint_diversity_comparison_normalized()
+    plot_joint_diversity_comparison(candidate_range, with_max=True)
+    # plot_joint_diversity_comparison_normalized()

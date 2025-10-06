@@ -136,40 +136,46 @@ def import_diversity_comparison_results():
         raise FileNotFoundError(f"Results file not found: {csv_path}")
     return pd.read_csv(csv_path)
 
-def plot_joint_diversity_comparison(with_max=True):
+def plot_joint_diversity_comparison(candidate_range, with_max=True):
     """
     Plot diversity comparison from joint CSV, showing mean and std across all runs.
-    Also print the mean and std for each candidate count.
+    Only plot values from candidate_range. Keeps gray horizontal lines.
     """
 
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
     csv_path = os.path.join(results_dir, '_euclidean_2d_joint.csv')
     df = pd.read_csv(csv_path)
     grouped = df.groupby('num_candidates')
-    candidate_range = np.array(sorted(df['num_candidates'].unique()))
+    all_candidates = np.array(sorted(df['num_candidates'].unique()))
     twod_mean = grouped['2d_diversity'].mean().values
     twod_std = grouped['2d_diversity'].std().values
     if with_max:
         opt_mean = grouped['optimal_diversity'].mean().values
         opt_std = grouped['optimal_diversity'].std().values
-    # Print table of means and stds
-    # Plot
-    plt.figure(figsize=(9, 6))
+    # Filter arrays to only candidate_range
+    mask = np.isin(all_candidates, candidate_range)
+    plot_candidates = all_candidates[mask]
+    twod_mean = twod_mean[mask]
+    twod_std = twod_std[mask]
     if with_max:
-        plt.plot(candidate_range, opt_mean, label=LABEL['max'], marker=MARKER['max'], linewidth=2,
+        opt_mean = opt_mean[mask]
+        opt_std = opt_std[mask]
+    plt.figure(figsize=(6, 6))
+    # Gray horizontal lines
+    if with_max:
+        plt.plot(plot_candidates, opt_mean, label=LABEL['max'], marker=MARKER['max'], linewidth=2,
                  markersize=8, color=COLOR['max'], linestyle=LINE['max'])
-        plt.fill_between(candidate_range, opt_mean - opt_std, opt_mean + opt_std,
+        plt.fill_between(plot_candidates, opt_mean - opt_std, opt_mean + opt_std,
                          color=COLOR['max'], alpha=0.2)
-
-    plt.plot(candidate_range, twod_mean, label='2D-Sqr.', marker=MARKER['euclidean_2d'], linewidth=2, markersize=8, color=COLOR['euclidean_2d'])
-    plt.fill_between(candidate_range, twod_mean - twod_std, twod_mean + twod_std, color=COLOR['euclidean_2d'], alpha=0.2)
+    plt.plot(plot_candidates, twod_mean, label='2D-Sqr.', marker=MARKER['euclidean_2d'], linewidth=2, markersize=8, color=COLOR['euclidean_2d'])
+    plt.fill_between(plot_candidates, twod_mean - twod_std, twod_mean + twod_std, color=COLOR['euclidean_2d'], alpha=0.2)
     plt.xlabel('Number of Candidates', fontsize=36)
-    plt.ylabel('Outer Diversity', fontsize=36)
+    # plt.ylabel('Outer Diversity', fontsize=36)
     plt.legend(fontsize=28, loc='lower left')
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 11, 14]
+    xticks_to_show = [x for x in [2, 5, 8, 11, 14] if x in plot_candidates]
     plt.xticks(xticks_to_show, fontsize=28)
-    plt.yticks(fontsize=28)
+    plt.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ['', '', '','','','',], fontsize=28)
     plt.ylim(0, 1)
     plt.tight_layout()
     plt.savefig('images/changing_m/changing_m_euclidean_2d_with_max.png', dpi=300, bbox_inches='tight')
@@ -299,7 +305,7 @@ if __name__ == "__main__":
     # run_fully_parallel_diversity_computation(
     #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
     # merge_euclidean_2d_results(candidate_range, runs_range, with_max=True)
-    # plot_joint_diversity_comparison(with_max=True)
+    plot_joint_diversity_comparison(candidate_range, with_max=True)
     # plot_joint_diversity_comparison_normalized()
 
-    merge_euclidean_2d_results(range(2, 17+1), runs_range, with_max=False)
+    # merge_euclidean_2d_results(range(2, 17+1), runs_range, with_max=False)

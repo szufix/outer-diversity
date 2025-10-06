@@ -76,8 +76,8 @@ if __name__ == "__main__":
         # 'single_peaked',
         # 'single_crossing',
         # 'euclidean_1d',
-        # 'largest_condorcet',
-        'fishburn',
+        'largest_condorcet',
+        # 'fishburn',
     ]
 
 
@@ -88,4 +88,4 @@ if __name__ == "__main__":
 
         compute_data_for_popularity_histogram(num_candidates, name)
 
-        # generate_popularity_histogram(num_candidates, name)
+        generate_popularity_histogram(num_candidates, name)

@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 from src.print_utils import *
 from src.diversity.diversity_utils import *
 from src.diversity.growing_domains import *
@@ -53,10 +54,13 @@ def print_domain_diversity(base, candidate_range, num_runs=10):
         for num_candidates in candidate_range:
             avg, std = diversity_stats[num_candidates][name]
             row += f" & {round(avg, 3)} $\\pm$ {round(std, 3)}"
+            # x = (1 - avg)/2
+            # print(round(x,3))
         row += " \\\\"
         print(row)
     print("\\hline")
     print("\\end{tabular}")
+
 
 
 
@@ -152,6 +156,10 @@ def plot_domain_size_increase_bar(name, num_candidates) -> None:
     # plt.legend(fontsize=18, loc='center left', bbox_to_anchor=(1, 0.5))
 
     plt.ylim([0, 7500])
+    # Format y-axis ticks as 1k, 2k, ...
+    ax = plt.gca()
+    ax.yaxis.set_major_locator(mticker.MultipleLocator(1000))
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f'{int(x/1000)}k' if x >= 1000 else f'{int(x)}'))
     plt.savefig(f'images/domain_size/domain_size_{name}_m{num_candidates}_bar.png',
                 dpi=200, bbox_inches='tight')
     # plt.show()
@@ -162,18 +170,18 @@ def plot_domain_size_increase_bar(name, num_candidates) -> None:
 if __name__ == "__main__":
 
     base = [
-        # 'euclidean_3d',
-        # 'euclidean_3d',
-        # 'euclidean_2d',
-        # 'spoc',
-        # 'sp_double_forked',
-        # 'caterpillar',
-        # 'balanced',
-        # 'single_peaked',
-        # 'single_crossing',
-        # 'euclidean_1d',
-        # 'ext_single_vote',
-        # 'single_vote',
+        'euclidean_3d',
+        'euclidean_3d',
+        'euclidean_2d',
+        'spoc',
+        'sp_double_forked',
+        'caterpillar',
+        'balanced',
+        'single_peaked',
+        'single_crossing',
+        'euclidean_1d',
+        'ext_single_vote',
+        'single_vote',
         'largest_condorcet'
     ]
 
@@ -183,10 +191,10 @@ if __name__ == "__main__":
 
     for num_candidates in candidate_range:
         print(num_candidates)
-        compute_domain_balls(base, num_candidates, num_runs)
+        # compute_domain_balls(base, num_candidates, num_runs)
 
-        plot_domain_size_total(base, num_candidates)
-        plot_domain_size_increase(base, num_candidates)
+        # plot_domain_size_total(base, num_candidates)
+        # plot_domain_size_increase(base, num_candidates)
 
         # for name in base:
         #     plot_domain_size_increase_bar(name, num_candidates)

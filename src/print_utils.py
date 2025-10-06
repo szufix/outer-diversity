@@ -1,3 +1,5 @@
+
+
 LABEL = {
     'caterpillar': 'GS/cat',
     'balanced': 'GS/bal',
@@ -28,7 +30,30 @@ LABEL = {
     'ext_single_vote': 'Ext. Single Vote',
 
     'max': '~Max',
-    'largest_condorcet': 'Largest Condorcet',
+    'largest_condorcet': 'Largest Cond.',
+    'fishburn': 'Fishburn',
+}
+
+SHORT_LABEL = {
+    'caterpillar': 'GS/cat',
+    'balanced': 'GS/bal',
+    'single_peaked': 'SP',
+    'single_crossing': 'SC',
+    'spoc': 'SPOC',
+    'sp_double_forked': 'SP/DF',
+
+    'impartial': 'IC',
+    'single_peaked_walsh': 'SP/Wal',
+    'single_peaked_conitzer': 'SP/Con',
+    'euclidean_3d': '3D-Cube',
+    'euclidean_2d': '2D-Sqr.',
+    'euclidean_1d': '1D-Int.',
+
+    'single_vote': 'Single V.',
+    'ext_single_vote': 'V.+Rev.V.',
+
+    'max': '~Max',
+    'largest_condorcet': 'LC',
     'fishburn': 'Fishburn',
 }
 
@@ -97,3 +122,5 @@ COLOR = {
     'largest_condorcet': 'tab:cyan',
     'fishburn': 'tab:cyan',
 }
+
+

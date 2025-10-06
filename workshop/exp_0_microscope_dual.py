@@ -154,7 +154,7 @@ def print_microscope(
             if popularity_without_ic[ctr] > ideal_pop:
                 marker = 'o'  # upward triangle for above ideal
             elif popularity_without_ic[ctr] == ideal_pop:
-                marker = '^'  # downward triangle for below ideal
+                marker = '*'  # downward triangle for below ideal
             elif popularity_without_ic[ctr] < ideal_pop:
                 marker = 'x'  # downward triangle for below ideal
 
@@ -275,25 +275,23 @@ max_pop = 200000
 
 
 base_sorted = [
-    # 'euclidean_3d',
-    # 'euclidean_2d',
-    # 'spoc',
-    # 'sp_double_forked',
-    # 'caterpillar',
-    # 'balanced',
-    # 'single_peaked',
-    # 'single_crossing',
-    # 'euclidean_1d',
-    # 'largest_condorcet',
-    'fishburn',
+    'euclidean_3d',
+    'caterpillar',
+    'spoc',
+    'euclidean_2d',
+    'sp_double_forked',
+    'balanced',
+    'largest_condorcet',
+    'single_peaked',
+    'single_crossing',
 ]
 
 
 # WITHOUT IC
-compute_microscope(num_candidates, base_sorted)
-plot_microscope(base_sorted, num_candidates, min_pop, max_pop)
+# compute_microscope(num_candidates, base_sorted)
+# plot_microscope(base_sorted, num_candidates, min_pop, max_pop)
 paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
-create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}.png')
+create_image_grid(paths,9,1, output_path=f'images/microscope/microscope_m{num_candidates}.png')
 
 
 # WITH IC
