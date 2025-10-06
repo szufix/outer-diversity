@@ -67,17 +67,16 @@ def generate_popularity_histogram(num_candidates, name):
 if __name__ == "__main__":
 
     base = [
-        # 'euclidean_3d',
-        # 'euclidean_2d',
-        # 'spoc',
-        # 'sp_double_forked',
-        # 'caterpillar',
-        # 'balanced',
-        # 'single_peaked',
-        # 'single_crossing',
-        # 'euclidean_1d',
+        'euclidean_3d',
+        'euclidean_2d',
+        'spoc',
+        'sp_double_forked',
+        'caterpillar',
+        'balanced',
+        'single_peaked',
+        'single_crossing',
+        'euclidean_1d',
         'largest_condorcet',
-        # 'fishburn',
     ]
 
 

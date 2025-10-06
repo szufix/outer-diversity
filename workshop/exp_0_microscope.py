@@ -264,9 +264,6 @@ def plot_microscope(base, num_candidates, min_pop, max_pop, with_ic=False, num_i
 
         print_microscope(election, popularity, title, saveas, min_pop, max_pop, with_title=with_title)
 
-
-## BEFORE DOING THIS YOU HAVE TO COMPUTE POPULARITY DATA FOR ALL DOMAINS
-
 num_candidates = 8
 num_ic_votes = 512
 

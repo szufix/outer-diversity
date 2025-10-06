@@ -7,26 +7,16 @@ from time import time
 if __name__ == "__main__":
 
     methods = [
-        # 'ilp',  # Use individual computation for ILP
-        # 'greedy_ilp',
-        # 'sa',
-        'smpl_sa',
-        # 'ic',
-        'smpl_ic',
-        # 'smpl_holy_ic',
+        'ilp',  # Use individual computation for ILP
+        'sa',
+        'ic',
     ]
 
-    # num_candidates = 4
-    # domain_sizes = range(1,24+1)
+    num_candidates = 6
+    domain_sizes = range(1,30+1)
 
-    # num_candidates = 5
-    # domain_sizes = range(1,120+1)
-
-    # num_candidates = 6
-    # domain_sizes = range(1,720+1)
-
-    num_candidates = 8
-    domain_sizes = range(1,800+1)
+    # num_candidates = 8
+    # domain_sizes = range(1,800+1)
 
     max_iterations = None
     num_samples = 1000
@@ -47,4 +37,4 @@ if __name__ == "__main__":
     # print(x)
 
     plot_optimal_nodes_results(num_candidates, methods, domain_sizes,
-                               with_structured_domains=True)
+                               with_structured_domains=False)

@@ -113,34 +113,6 @@ def plot_optimal_nodes_results(
         print("No results to display.")
         return
 
-    # Calculate and print approximation ratios
-    # if 'ilp' in all_results:
-    #     ilp_costs = {result['domain_size']: result['total_cost'] for result in all_results['ilp']}
-    #     optimal_diversity = {key: 1 - tc / normalization(num_candidates) for key, tc in ilp_costs.items()}
-    #
-    #     for method in methods:
-    #         if method != 'ilp' and method in all_results:
-    #             method_costs = {result['domain_size']: result['total_cost'] for result in all_results[method]}
-    #             outer_diversity = {key: 1 - tc / normalization(num_candidates) for key, tc in method_costs.items()}
-
-                # Calculate approximation ratios for common domain sizes
-                # ratios = []
-                # for domain_size in domain_sizes:
-                #     if domain_size in method_costs and ilp_costs[domain_size] > 0:
-                #         # print(method)
-                #         # print("->", optimal_diversity[5])
-                #         print(domain_size)
-                #         print(outer_diversity[domain_size])
-                #         print(optimal_diversity[domain_size])
-                #         ratio = outer_diversity[domain_size] / optimal_diversity[domain_size]
-                #         ratios.append(ratio)
-                #
-                # if ratios:
-                #     avg_ratio = sum(ratios) / len(ratios)
-                #     print(f"Average approximation ratio for {method.upper()}: {avg_ratio:.4f}")
-                # else:
-                #     print(f"No valid approximation ratios found for {method.upper()}")
-
     # Load domain size data for horizontal lines
     if with_structured_domains:
         domain_data = load_domain_size_data(num_candidates)
@@ -152,17 +124,33 @@ def plot_optimal_nodes_results(
     if ax is None:
         fig, ax = plt.subplots(figsize=(6, 10))
 
-    # Define colors and styles for each method
-    method_styles = {
-        'ilp': {'marker': 'o', 'linestyle': '-', 'color': 'black', 'label': 'ILP (Optimal)', 'linewidth': 3, 'markersize': 5},
-        'greedy_ilp': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'Greedy ILP', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-        'sa': {'marker': 's', 'linestyle': '--', 'color': 'red', 'label': 'SA', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-        'ic': {'marker': '^', 'linestyle': '-', 'color': 'black', 'label': 'IC',
-                    'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-        'smpl_sa': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'Sampling SA', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-        'smpl_ic': {'marker': '^', 'linestyle': '-', 'color': 'black', 'label': 'Sampling IC', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-        'smpl_holy_ic': {'marker': '^', 'linestyle': '-', 'color': 'blue', 'label': 'Smpl Holy IC', 'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-    }
+        # Define colors and styles for each method
+        method_styles = {
+            'ilp': {'marker': 'o', 'linestyle': '-', 'color': 'red', 'label': 'ILP (Optimal)',
+                    'linewidth': 3, 'markersize': 5},
+            'greedy_ilp': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'Greedy ILP',
+                           'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+            'sa': {'marker': 's', 'linestyle': '-', 'color': 'black', 'label': '~Max',
+                   'linewidth': 2,
+                   'markersize': 4, 'alpha': 0.8},
+            'ic': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'IC',
+                   'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+            'smpl_sa': {'marker': '^', 'linestyle': '-', 'color': 'black', 'label': '~Max',
+                        'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+            'smpl_ic': {'marker': '^', 'linestyle': '-', 'color': 'green', 'label': 'IC',
+                        'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
+            'smpl_holy_ic': {'marker': '^', 'linestyle': '-', 'color': 'blue',
+                             'label': 'Smpl Holy IC', 'linewidth': 2, 'markersize': 4,
+                             'alpha': 0.8},
+        }
+
+    # normalize the values for 'sa'
+    import math
+    n = math.factorial(num_candidates)
+    max_cost = normalization(num_candidates)
+    if 'sa' in all_results:
+        for result in all_results['sa']:
+            result['total_cost'] = 1 - result['total_cost'] / n * 2 / math.comb(num_candidates, 2)
 
     # Plot results for each method
     for method, results in all_results.items():
@@ -189,7 +177,7 @@ def plot_optimal_nodes_results(
                 linestyle=style['linestyle'],
                 color=style['color'],
                 linewidth=1, #style.get('linewidth', 2),
-                # markersize=style.get('markersize', 4),
+                markersize=style.get('markersize', 4),
                 alpha=style.get('alpha', 1.0),
                 label=style['label'])
 
@@ -216,14 +204,13 @@ def plot_optimal_nodes_results(
                     ax.scatter(domain_size, horizontal_value, color=COLOR[domain_name],
                                 s=100, zorder=5)
 
-    ax.set_xlabel('Domain Size', fontsize=22)
-    ax.set_ylabel('Outer Diversity', fontsize=22)
-    ax.set_title(f'Most Diverse Domain ({num_candidates} candidates)', fontsize=22)
+    ax.set_xlabel('Domain Size', fontsize=28)
+    ax.set_ylabel('Outer Diversity', fontsize=28)
     ax.grid(True, alpha=0.3)
 
     # Increase tick label sizes
-    ax.tick_params(axis='both', which='major', labelsize=18)
-    ax.tick_params(axis='both', which='minor', labelsize=16)
+    ax.tick_params(axis='both', which='major', labelsize=22)
+    ax.tick_params(axis='both', which='minor', labelsize=22)
 
     ax.set_ylim([-0.05, 1.05])
 
@@ -309,10 +296,11 @@ def plot_holy_ic(base, num_candidates, with_structured_domains=True, ax=None):
     print(f"Loaded {len(domain_sizes)} data points from {len(filtered_files)} files.")
 
     ax.scatter(domain_sizes, outer_diversities, alpha=0.8, marker='x', color='black')
-    ax.set_xlabel('Domain Size', fontsize=32)
-    ax.set_ylabel('Outer Diversity', fontsize=32)
+    ax.set_xlabel('Domain Size', fontsize=36)
+    ax.set_ylabel('Outer Diversity', fontsize=36)
     ax.tick_params(axis='both', which='major', labelsize=28)
-    ax.tick_params(axis='both', which='minor', labelsize=24)
+    ax.tick_params(axis='both', which='minor', labelsize=28)
+
     ax.set_ylim([0, 1])
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -368,7 +356,7 @@ def plot_holy_ic_and_optimal_nodes_results(
                     'linewidth': 3, 'markersize': 5},
             'greedy_ilp': {'marker': 'd', 'linestyle': '-', 'color': 'blue', 'label': 'Greedy ILP',
                            'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
-            'sa': {'marker': 's', 'linestyle': '--', 'color': 'red', 'label': 'SA', 'linewidth': 2,
+            'sa': {'marker': 's', 'linestyle': '--', 'color': 'red', 'label': '~Max', 'linewidth': 2,
                    'markersize': 4, 'alpha': 0.8},
             'ic': {'marker': '^', 'linestyle': '-', 'color': 'blue', 'label': 'IC',
                    'linewidth': 2, 'markersize': 4, 'alpha': 0.8},
