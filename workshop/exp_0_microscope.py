@@ -4,15 +4,13 @@ from itertools import permutations
 
 import mapof.elections as mapof
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 
 from src.domain import *
 from src.domain.popularity import import_popularity_from_csv
-
 from src.print_utils import LABEL
-from src.image_processing import *
+
 
 def get_permutations(s):
     return [list(p) for p in permutations(range(s))]
@@ -133,12 +131,10 @@ def print_microscope(
     print('max_pop', max_pop)
     clipped_popularity_without_ic = np.clip(popularity_without_ic, min_pop, max_pop)
 
-    # Custom colormap: darker blue -> warmer green -> darker red, with green at ideal_pop
-    colors_list = ["#08519c", "#f5deb3", "#d73027"]  # #a3c686 is a warmer green
+    colors_list = ["#08519c", "#f5deb3", "#d73027"]
     custom_cmap = LinearSegmentedColormap.from_list('blue_green_red', colors_list, N=256)
     norm = TwoSlopeNorm(vmin=min_pop, vcenter=ideal_pop, vmax=max_pop)
     colors = custom_cmap(norm(clipped_popularity_without_ic))
-
 
     for i in range(len(popularity)):
         if popularity[i] == -1:
@@ -153,10 +149,16 @@ def print_microscope(
 
             if popularity_without_ic[ctr] > ideal_pop:
                 marker = 'o'  # upward triangle for above ideal
+                edge = None
+                lw = None
             elif popularity_without_ic[ctr] == ideal_pop:
-                marker = '*'  # downward triangle for below ideal
+                marker = 'o'  # circle with thin black border for ideal
+                edge = 'black'
+                lw = 1
             elif popularity_without_ic[ctr] < ideal_pop:
                 marker = 'x'  # downward triangle for below ideal
+                edge = None
+                lw = None
 
 
             election.microscope.ax.scatter(election.coordinates['vote'][i][0],
@@ -164,11 +166,14 @@ def print_microscope(
                                            c=[colors[ctr]],
                                            alpha=1,
                                            marker=marker,
-                                           s=50)
+                                           s=80,
+                                           edgecolors=edge,
+                                           linewidths=lw)
             ctr += 1
 
         election.microscope.ax.set_title(title, fontsize=44)
-    election.microscope.show_and_save(saveas=saveas)
+    # election.microscope.show_and_save(saveas=saveas)
+    election.microscope.save_to_file(saveas=saveas)
 
 def map_ids(election_target, election_with_ic, centers, clusters):
     new_center_ids = []
@@ -264,6 +269,39 @@ def plot_microscope(base, num_candidates, min_pop, max_pop, with_ic=False, num_i
 
         print_microscope(election, popularity, title, saveas, min_pop, max_pop, with_title=with_title)
 
+def save_microscope_colorbar(min_pop=1, max_pop=200000, ideal_pop=40320, filename='microscope_colorbar.png'):
+
+
+    colors_list = ["#08519c", "#f5deb3", "#d73027"]
+    custom_cmap = LinearSegmentedColormap.from_list('blue_green_red', colors_list, N=256)
+    norm = TwoSlopeNorm(vmin=min_pop, vcenter=ideal_pop, vmax=max_pop)
+
+    fig, ax = plt.subplots(figsize=(1, 3))
+    fig.subplots_adjust(left=0.3, right=0.7)
+    cb = fig.colorbar(
+        plt.cm.ScalarMappable(norm=norm, cmap=custom_cmap),
+        cax=ax,
+        orientation='vertical',
+        label='Popularity',
+    )
+    cb.set_label('N. Popularity', fontsize=30)
+    cb.ax.tick_params(labelsize=32)
+
+    # Only show ticks for min, optimal, and max values
+    cb.set_ticks([min_pop, ideal_pop, max_pop])
+
+    n_min = int(min_pop/ideal_pop)
+    n_ideal = 1
+    n_max = int(max_pop/ideal_pop)
+    cb.set_ticklabels([str(n_min), str(n_ideal), str(n_max) + '+'])
+
+
+    fig.savefig(filename, bbox_inches='tight', dpi=200)
+    plt.show()
+
+# To generate the colorbar PNG, call:
+save_microscope_colorbar()
+
 num_candidates = 8
 num_ic_votes = 512
 
@@ -272,23 +310,23 @@ max_pop = 200000
 
 
 base_sorted = [
-    'euclidean_3d',
-    'caterpillar',
-    'spoc',
-    'euclidean_2d',
-    'sp_double_forked',
-    'balanced',
+    # 'euclidean_3d',
+    # 'caterpillar',
+    # 'spoc',
+    # 'euclidean_2d',
+    # 'sp_double_forked',
+    # 'balanced',
     'largest_condorcet',
-    'single_peaked',
-    'single_crossing',
+    # 'single_peaked',
+    # 'single_crossing',
 ]
 
 
 # WITHOUT IC
 # compute_microscope(num_candidates, base_sorted)
 # plot_microscope(base_sorted, num_candidates, min_pop, max_pop)
-paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
-create_image_grid(paths,9,1, output_path=f'images/microscope/microscope_m{num_candidates}.png')
+# paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
+# create_image_grid(paths,9,1, output_path=f'images/microscope/microscope_m{num_candidates}.png')
 
 
 # WITH IC

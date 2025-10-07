@@ -72,7 +72,7 @@ def sample_diverse_votes(num_candidates: int, domain_size: int, threshold: int =
     # max_dist = num_candidates * (num_candidates - 1) // 2
     votes = []
     attempts = 0
-    max_attempts = 100 * domain_size  # Prevent infinite loops
+    max_attempts = 10000
     while len(votes) < domain_size and attempts < max_attempts:
         # threshold = max_dist / (len(votes) + 2)
         # threshold = max([5, max_dist / (len(votes) + 2)])

@@ -1,5 +1,7 @@
 import csv
+import math
 import os
+from tqdm import tqdm
 
 from src.domain.extenders import (
     extend_by_swaps
@@ -65,10 +67,17 @@ def compute_domain_balls(base, num_candidates, num_runs=10) -> None:
             domain = domains[name](num_candidates=num_candidates)
             balls[name].append(len(domain))
             max_num_swaps = get_max_num_swaps(num_candidates)
-            for _ in range(1, max_num_swaps+1):
+            for _ in tqdm(range(1, max_num_swaps+1), desc=f'{name} swaps'):
+                # print(balls[name][-1], math.factorial(num_candidates))
+
+                if balls[name][-1] == math.factorial(num_candidates):
+                    print(balls)
+                    print("\nFor", num_candidates, " outcome is: ", len(balls[name])-1)
+                    break
+
                 if len(balls[name]) >= 2 and balls[name][-1] == balls[name][-2]:
                     balls[name].append(balls[name][-1])
                 else:
                     domain = extend_by_swaps(domain, 1)
                     balls[name].append(len(domain))
-        save_domain_size_csv(balls, num_candidates, run_idx=run_idx)
+        # save_domain_size_csv(balls, num_candidates, run_idx=run_idx)

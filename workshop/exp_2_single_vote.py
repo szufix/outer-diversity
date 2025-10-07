@@ -1,10 +1,5 @@
-import matplotlib.pyplot as plt
-import csv
-import os
-
-from src.domain.extenders import *
 from src.domain import *
-from src.print_utils import *
+from src.domain.extenders import *
 
 domains = {
     'single_vote': single_vote_domain,

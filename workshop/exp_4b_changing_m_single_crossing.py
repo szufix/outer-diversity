@@ -1,13 +1,12 @@
 import csv
 import glob
 import math
+import multiprocessing
 import os
-from time import time
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import multiprocessing
 
 from src.diversity.sampling import (
     outer_diversity_sampling_for_structered_domains
@@ -144,13 +143,17 @@ def plot_joint_diversity_comparison(candidate_range, with_max=True):
     Also print the mean and std for each candidate count.
     """
 
-    max_candidate = candidate_range[-1]
+    max_candidate = candidate_range[-1]-1
+    print(max_candidate)
 
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
     csv_path = os.path.join(results_dir, '_single_crossing_joint.csv')
+
     df = pd.read_csv(csv_path)
     grouped = df.groupby('num_candidates')
-    candidate_range = range(2, 14+1)
+
+    # candidate_range = range(2, 16)
+
 
     sc_mean = grouped['sc_diversity'].mean().values
     sc_std = grouped['sc_diversity'].std().values
@@ -166,12 +169,13 @@ def plot_joint_diversity_comparison(candidate_range, with_max=True):
     #         print(f"{num_candidates:>13} | {sc_mean[i]:.4f} | {sc_std[i]:.4f}")
     # # Plot
 
-
     sc_mean = sc_mean[0:max_candidate]
     sc_std = sc_std[0:max_candidate]
     if with_max:
         opt_mean = opt_mean[0:max_candidate]
         opt_std = opt_std[0:max_candidate]
+
+    print(len(opt_mean))
 
     print(candidate_range)
 
@@ -188,7 +192,7 @@ def plot_joint_diversity_comparison(candidate_range, with_max=True):
     plt.ylabel('Outer Diversity', fontsize=36)
     plt.legend(fontsize=28, loc='upper right')
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 11, 14]
+    xticks_to_show = [2, 5, 8, 12, 16]
     plt.xticks(xticks_to_show, fontsize=28)
     plt.yticks(fontsize=28)
     plt.ylim(0, 1)
@@ -288,7 +292,7 @@ def merge_single_crossing_results():
     print(f"Merged {len(all_files)} files into {output_path}")
 
 if __name__ == "__main__":
-    candidate_range = range(2, 14)
+    candidate_range = range(2, 16+1)
     num_samples = 1000
     max_iterations = 256
     num_runs = 10

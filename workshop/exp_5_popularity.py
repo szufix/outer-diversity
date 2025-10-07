@@ -86,5 +86,4 @@ if __name__ == "__main__":
         print(f"Processing domain: {name} with {num_candidates} candidates...")
 
         compute_data_for_popularity_histogram(num_candidates, name)
-
         generate_popularity_histogram(num_candidates, name)

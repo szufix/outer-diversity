@@ -1,22 +1,20 @@
 import csv
 import glob
 import math
+import multiprocessing
 import os
-from time import time
+import re
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import multiprocessing
 
 from src.diversity.sampling import (
-    outer_diversity_sampling_for_structered_domains, outer_diversity_sampling
+    outer_diversity_sampling
 )
-from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
 from src.domain.euclidean_ilp import euclidean_2d_domain
+from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
 from src.print_utils import LABEL, MARKER, COLOR, LINE
-import re
-
 
 
 def normalization(m):
@@ -161,20 +159,23 @@ def plot_joint_diversity_comparison(candidate_range, with_max=True):
         opt_mean = opt_mean[mask]
         opt_std = opt_std[mask]
     plt.figure(figsize=(6, 6))
+
+
     # Gray horizontal lines
     if with_max:
         plt.plot(plot_candidates, opt_mean, label=LABEL['max'], marker=MARKER['max'], linewidth=2,
                  markersize=8, color=COLOR['max'], linestyle=LINE['max'])
         plt.fill_between(plot_candidates, opt_mean - opt_std, opt_mean + opt_std,
                          color=COLOR['max'], alpha=0.2)
-    plt.plot(plot_candidates, twod_mean, label='2D-Sqr.', marker=MARKER['euclidean_2d'], linewidth=2, markersize=8, color=COLOR['euclidean_2d'])
+    plt.plot(plot_candidates, twod_mean, label='2D-Square', marker=MARKER['euclidean_2d'], linewidth=2, markersize=8, color=COLOR['euclidean_2d'])
     plt.fill_between(plot_candidates, twod_mean - twod_std, twod_mean + twod_std, color=COLOR['euclidean_2d'], alpha=0.2)
     plt.xlabel('Number of Candidates', fontsize=36)
     # plt.ylabel('Outer Diversity', fontsize=36)
     plt.legend(fontsize=28, loc='lower left')
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [x for x in [2, 5, 8, 11, 14] if x in plot_candidates]
+    xticks_to_show = [2, 5, 8, 12, 16]
     plt.xticks(xticks_to_show, fontsize=28)
+
     plt.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ['', '', '','','','',], fontsize=28)
     plt.ylim(0, 1)
     plt.tight_layout()
@@ -298,14 +299,14 @@ def merge_euclidean_2d_results(candidate_range, runs_range, with_max=True):
 
 
 if __name__ == "__main__":
-    candidate_range = range(2, 14+1)
+    candidate_range = range(2, 16+1)
     num_samples = 1000
     max_iterations = 256
     runs_range = range(10)
     # run_fully_parallel_diversity_computation(
     #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
-    # merge_euclidean_2d_results(candidate_range, runs_range, with_max=True)
+    merge_euclidean_2d_results(candidate_range, runs_range, with_max=True)
     plot_joint_diversity_comparison(candidate_range, with_max=True)
     # plot_joint_diversity_comparison_normalized()
 
-    # merge_euclidean_2d_results(range(2, 17+1), runs_range, with_max=False)
+    # merge_euclidean_2d_results(range(2, 20+1), runs_range, with_max=False)

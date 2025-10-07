@@ -3,13 +3,11 @@ import sys
 from time import time
 
 from src.max_diversity.main import (
-    compute_optimal_nodes,
     compute_optimal_nodes_single,
     merge_individual_results,
     check_individual_results_status,
 )
 from src.max_diversity.plot import plot_optimal_nodes_results
-
 
 
 def compute_single_domain_size():

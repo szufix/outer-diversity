@@ -1,20 +1,16 @@
 import csv
 import glob
 import math
-import os
-from time import time
-import re
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import multiprocessing
+import os
+import re
+
+import pandas as pd
 
 from src.diversity.sampling import (
     outer_diversity_sampling_for_structered_domains, outer_diversity_sampling
 )
-from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
 from src.domain.euclidean_ilp import euclidean_3d_domain
-from src.print_utils import LABEL, MARKER, COLOR, LINE
 from src.domain.single_peaked import spoc_domain
 
 
@@ -137,9 +133,9 @@ def merge_results(name, candidate_range, runs_range):
 if __name__ == "__main__":
 
     names = ['spoc', 'euclidean_3d']
-    candidate_range = range(2, 17+1)
+    candidate_range = range(2, 19+1)
     num_samples = 1000
-    runs_range = [0]
+    runs_range = range(10)
     for name in names:
         # run_fully_parallel_diversity_computation(
         #     name, candidate_range, num_samples, runs_range)

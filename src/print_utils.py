@@ -45,8 +45,8 @@ SHORT_LABEL = {
     'impartial': 'IC',
     'single_peaked_walsh': 'SP/Wal',
     'single_peaked_conitzer': 'SP/Con',
-    'euclidean_3d': '3D-Cube',
-    'euclidean_2d': '2D-Sqr.',
+    'euclidean_3d': '3D-Cb.',
+    'euclidean_2d': '2D-Sq.',
     'euclidean_1d': '1D-Int.',
 
     'single_vote': 'Single V.',

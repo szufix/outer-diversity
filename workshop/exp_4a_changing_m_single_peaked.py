@@ -1,27 +1,26 @@
-import glob
-from time import time
 import csv
+import glob
+import multiprocessing
 import os
+import re
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from src.diversity.sampling import (
     outer_diversity_sampling,
     outer_diversity_sampling_for_structered_domains
 )
-from src.domain.single_peaked import single_peaked_domain
 from src.domain.group_separable import (
     group_separable_caterpillar_domain,
     group_separable_balanced_domain
 )
+from src.domain.single_peaked import single_peaked_domain
 from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
-import multiprocessing
 from src.print_utils import LABEL, MARKER, COLOR, LINE
-import re
-import os
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+
+
 def compute_single_peaked_diversity(num_candidates, num_samples):
     """Compute outer diversity for single-peaked domain."""
     domain = single_peaked_domain(num_candidates)
@@ -263,7 +262,7 @@ def plot_joint_diversity_comparison(with_max=True):
     # plt.ylabel('Outer Diversity', fontsize=36)
     plt.legend(fontsize=28, loc='lower left')
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 11, 14]
+    xticks_to_show = [2, 5, 8, 12, 16]
     plt.xticks(xticks_to_show, fontsize=28)
 
     plt.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ['', '', '','','','',], fontsize=28)
@@ -370,7 +369,7 @@ def merge_single_peaked_results(candidate_range, runs_range, with_max):
 
 
 if __name__ == "__main__":
-    candidate_range = range(2, 14 + 1)
+    candidate_range = range(2, 16 + 1)
     num_samples = 1000
     max_iterations = 256
     runs_range = range(10)
@@ -380,4 +379,4 @@ if __name__ == "__main__":
     plot_joint_diversity_comparison(with_max=True)
     # plot_joint_diversity_comparison_normalized()
 
-    # merge_single_peaked_results(range(2, 17 + 1), runs_range, with_max=False)
+    # merge_single_peaked_results(range(2, 20 + 1), runs_range, with_max=False)

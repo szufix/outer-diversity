@@ -1,26 +1,11 @@
-import glob
-from time import time
-import csv
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 from src.print_utils import *
-import pandas as pd
 
-from src.diversity.sampling import (
-    outer_diversity_sampling,
-    outer_diversity_sampling_for_structered_domains
-)
-from src.domain.single_peaked import single_peaked_domain
-from src.domain.group_separable import (
-    group_separable_caterpillar_domain,
-    group_separable_balanced_domain
-)
-from src.max_diversity.main import find_optimal_facilities_sampled_simulated_annealing
-import multiprocessing
-import os
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 
 def plot_joint_diversity_comparison(candidate_range):
     """
@@ -60,6 +45,7 @@ def plot_joint_diversity_comparison(candidate_range):
     twod_candidate_range = np.array(sorted(df_2d['num_candidates'].unique()))
 
 
+    # FOR SPOC AND 3D, we have results up to m=19
     # Read spoc results
     csv_path_spoc = os.path.join(results_dir, '_spoc_joint.csv')
     df_spoc = pd.read_csv(csv_path_spoc)
@@ -105,17 +91,17 @@ def plot_joint_diversity_comparison(candidate_range):
                      gs_caterpillar_mean + gs_caterpillar_std, color=COLOR['caterpillar'],
                      alpha=0.2)
 
-    plt.plot(candidate_range, threed_mean, label=LABEL['euclidean_3d'],
+    plt.plot(threed_candidate_range, threed_mean, label=LABEL['euclidean_3d'],
              marker=MARKER['euclidean_3d'], linewidth=2, markersize=8, color=COLOR['euclidean_3d'])
-    plt.fill_between(candidate_range, threed_mean - threed_std, threed_mean + threed_std,
+    plt.fill_between(threed_candidate_range, threed_mean - threed_std, threed_mean + threed_std,
                      color=COLOR['euclidean_3d'], alpha=0.2)
 
-    plt.plot(candidate_range, spoc_mean, label=LABEL['spoc'],
+    plt.plot(spoc_candidate_range, spoc_mean, label=LABEL['spoc'],
              marker=MARKER['spoc'], linewidth=2, markersize=8, color=COLOR['spoc'])
-    plt.fill_between(candidate_range, spoc_mean - spoc_std, spoc_mean + spoc_std,
+    plt.fill_between(spoc_candidate_range, spoc_mean - spoc_std, spoc_mean + spoc_std,
                      color=COLOR['spoc'], alpha=0.2)
 
-    plt.plot(candidate_range, twod_mean, label='2D-Sqr.',
+    plt.plot(candidate_range, twod_mean, label=SHORT_LABEL['euclidean_2d'],
              marker=MARKER['euclidean_2d'], linewidth=2, markersize=8, color=COLOR['euclidean_2d'])
     plt.fill_between(candidate_range, twod_mean - twod_std, twod_mean + twod_std,
                      color=COLOR['euclidean_2d'], alpha=0.2)
@@ -124,6 +110,7 @@ def plot_joint_diversity_comparison(candidate_range):
              linewidth=2, markersize=8, color=COLOR['balanced'])
     plt.fill_between(candidate_range, gs_balanced_mean - gs_balanced_std,
                      gs_balanced_mean + gs_balanced_std, color=COLOR['balanced'], alpha=0.2)
+
 
     plt.plot(candidate_range, sp_mean, label=LABEL['single_peaked'], marker=MARKER['single_peaked'],
              linewidth=2, markersize=8, color=COLOR['single_peaked'])
@@ -139,12 +126,13 @@ def plot_joint_diversity_comparison(candidate_range):
 
     plt.xlabel('Number of Candidates', fontsize=36)
     plt.ylabel('Outer Diversity', fontsize=36)
-    plt.legend(fontsize=24, loc='lower left')
+    plt.legend(fontsize=27, loc='upper right')
     plt.grid(True, alpha=0.3)
-    xticks_to_show = [2, 5, 8, 11, 14, 17]
+    plt.axvline(x=8, color='gray', linestyle='--', linewidth=3, alpha=0.7)
+    xticks_to_show = [2, 5, 8, 11, 14, 17, 20]
     plt.xticks(xticks_to_show, fontsize=28)
     plt.yticks(fontsize=28)
-    plt.ylim([-0.05, 1.05])
+    plt.ylim([-0.01, 1.01])
     plt.tight_layout()
     plt.savefig('images/changing_m/changing_m_all_domains_with_max.png', dpi=300,
                 bbox_inches='tight')
@@ -152,8 +140,8 @@ def plot_joint_diversity_comparison(candidate_range):
 
 
 if __name__ == "__main__":
-    candidate_range = range(2,17)
+    candidate_range = range(2,20)
     num_samples = 1000
     max_iterations = 256
-    num_runs = 1
+    num_runs = 10
     plot_joint_diversity_comparison(candidate_range)
