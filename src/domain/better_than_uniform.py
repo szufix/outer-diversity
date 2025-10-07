@@ -3,9 +3,6 @@ import numpy as np
 from src.domain import single_crossing_domain
 
 
-#################################################
-
-
 def single_crossing_with_gaps(num_voters, num_candidates, with_domain=False):
     domain = single_crossing_domain(num_candidates)
     # domain = [tuple(x) for x in domain]

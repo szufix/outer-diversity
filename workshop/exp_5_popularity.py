@@ -1,10 +1,13 @@
+import itertools
+
 from src.domain.popularity import *
 from src.print_utils import *
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def plot_popularity_histogram(popularity, m, name, img_path):
-    import numpy as np
+
     plt.figure(figsize=(8, 3))
     min_pop = 0
     max_pop = 1200
@@ -63,7 +66,6 @@ def generate_popularity_histogram(num_candidates, name):
     plot_popularity_histogram(popularity, num_candidates, name, img_path)
 
 
-
 if __name__ == "__main__":
 
     base = [
@@ -78,7 +80,6 @@ if __name__ == "__main__":
         'euclidean_1d',
         'largest_condorcet',
     ]
-
 
     num_candidates = 8
 

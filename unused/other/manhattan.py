@@ -160,7 +160,7 @@ def order_points_from_3_inter(intersection, points, triple_indices, tol=1e-9):
 
     return orderings
 
-  """
+    """
     For each point, compute the L1 distances to all other points (including itself),
     and return the list of obtained orderings.
 

@@ -5,10 +5,6 @@ from src.diversity.diversity_utils import (
 )
 
 
-
-
-
-
 def outer_diversity_growing_balls(domain, num_candidates, **kwargs):
     """ Computes the outer diversity of a given set of votes using the growing balls method. """
     balls = compute_domain_balls(domain)

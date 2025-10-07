@@ -10,7 +10,6 @@ from src.domain import *
 
 from src.diversity.diversity_utils import (
     get_max_num_swaps,
-    compute_balls_increase,
 )
 
 domains = {

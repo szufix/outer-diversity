@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class Domain:
     """
     Represents a domain of votes (permutations) for voting theory applications.

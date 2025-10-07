@@ -1,5 +1,3 @@
-import math
-
 from src.diversity.growing_balls import outer_diversity_growing_balls
 from src.diversity.sampling import outer_diversity_sampling
 

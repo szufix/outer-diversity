@@ -14,7 +14,6 @@ def plot_joint_diversity_comparison(candidate_range):
     """
 
     max_candidate = candidate_range[-1]
-    # max_candidate -=
 
     results_dir = os.path.join(os.path.dirname(__file__), 'data', 'changing_m')
     csv_path = os.path.join(results_dir, '_single_peaked_joint_no_max.csv')

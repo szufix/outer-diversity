@@ -1,4 +1,3 @@
-
 def domain_to_set(domain):
     """
     Converts a domain into a set of tuples

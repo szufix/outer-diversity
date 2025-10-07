@@ -1,5 +1,3 @@
-
-
 LABEL = {
     'caterpillar': 'GS/cat',
     'balanced': 'GS/bal',

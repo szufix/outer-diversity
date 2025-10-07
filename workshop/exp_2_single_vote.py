@@ -42,7 +42,6 @@ def compute_domain_size(base, num_candidates, x_range) -> None:
 
         diversity_data[name] = total_diversity
 
-    # print(size)
     print(size_increase)
     print(diversity_data)
 

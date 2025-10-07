@@ -1,13 +1,15 @@
-from gurobipy import Model, GRB, LinExpr, QuadExpr
-from random import *
-from src.domain.validator import validate_domain
-from src.domain.extenders import extend_to_reversed
-
 import warnings
+from random import *
+
+from gurobipy import Model, GRB, QuadExpr
+
+from src.domain.extenders import extend_to_reversed
 from src.domain.sizes import (
     EUC_1D_DOMAIN_SIZE,
     EUC_2D_DOMAIN_SIZE,
 )
+from src.domain.validator import validate_domain
+
 
 def c_pref_d_gurobi(model, v, c, d):
     """Creates inequality saying that voter v prefers c to d."""

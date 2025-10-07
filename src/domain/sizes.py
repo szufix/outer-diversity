@@ -1,4 +1,3 @@
-from matplotlib import pyplot as plt
 from fractions import Fraction
 
 
@@ -122,5 +121,3 @@ def test_domain_sizes():
         assert get_euc_3d_domain_size(i) == EUC_3D_DOMAIN_SIZE[i], \
             (f"EUC 3D size mismatch for {i}; "
              f"expected {EUC_3D_DOMAIN_SIZE[i]}, got {get_euc_3d_domain_size(i)}")
-
-# test_domain_sizes()

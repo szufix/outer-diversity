@@ -11,7 +11,6 @@ def distance_vote_single_peaked_domain(vote):
         int: Minimum distance between the vote and single-peaked domain
     """
 
-
     m = len(vote)
     pote = [list(vote).index(i) for i, _ in enumerate(vote)]
 

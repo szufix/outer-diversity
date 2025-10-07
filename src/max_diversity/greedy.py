@@ -1,7 +1,6 @@
 import networkx as nx
-from src.max_diversity.utils import compute_total_cost, bfs_distances
-import networkx as nx
 
+from src.max_diversity.utils import compute_total_cost, bfs_distances
 
 
 def find_optimal_facilities_greedy(graph: nx.Graph, m: int):

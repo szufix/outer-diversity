@@ -1,5 +1,3 @@
-import itertools
-import matplotlib.pyplot as plt
 import csv
 from src.diversity.diversity_utils import swap_distance_between_potes, vote_to_pote
 

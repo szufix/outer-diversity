@@ -11,7 +11,6 @@ import re
 
 plt.rcParams['font.serif'] = ['Times New Roman']
 
-from src.diversity.diversity_utils import normalization
 from src.print_utils import COLOR, LABEL, SHORT_LABEL
 
 

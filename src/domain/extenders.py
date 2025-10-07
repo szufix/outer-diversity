@@ -1,5 +1,6 @@
-from src.domain.validator import validate_domain
 import numpy as np
+
+from src.domain.validator import validate_domain
 
 
 @validate_domain

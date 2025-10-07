@@ -1,7 +1,3 @@
-from src.domain.single_crossing import single_crossing_domain
-
-
-
 def distance_vote_single_crossing_domain(vote, domain, domain_obj):
     """
     Compute the (optionally normalized) distance from a vote to the single crossing domain.
@@ -59,12 +55,6 @@ def distance_vote_single_crossing_domain(vote, domain, domain_obj):
 
                     min_distance = min(min_distance, current_distance)
 
-    # if normalize:
-    #     max_distance = num_candidates * (num_candidates - 1) / 2
-    #     if max_distance == 0:
-    #         return 0.0
-    #     return min_distance / max_distance
-    # else:
 
     return min_distance
 
