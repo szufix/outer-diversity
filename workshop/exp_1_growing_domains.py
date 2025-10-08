@@ -10,6 +10,10 @@ def print_domain_diversity(base, candidate_range, num_runs=10):
     import numpy as np
     # Store all diversity values for all runs
     diversity_data = {num_candidates: {name: [] for name in base} for num_candidates in candidate_range}
+    dist_1_data = {num_candidates: {name: [] for name in base} for num_candidates in candidate_range}
+    sizes_data = {num_candidates: {name: [] for name in base} for num_candidates in candidate_range}
+    ansd_data = {num_candidates: {name: [] for name in base} for num_candidates in candidate_range}
+    dist1_per_size_data = {num_candidates: {name: [] for name in base} for num_candidates in candidate_range}
 
     for num_candidates in candidate_range:
         for run_idx in range(num_runs):
@@ -24,45 +28,75 @@ def print_domain_diversity(base, candidate_range, num_runs=10):
                 size_increase = compute_balls_increase(size[name])
                 total_diversity = outer_diversity_from_balls_increase(size_increase, num_candidates)
                 diversity_data[num_candidates][name].append(total_diversity)
+                dist_1_data[num_candidates][name].append(size_increase[0]) # dist-1 is first increase
+                sizes_data[num_candidates][name].append(size[name][0]) # initial size
+                ansd_data[num_candidates][name].append((1 - total_diversity) / 2)
+                dist1_per_size_data[num_candidates][name].append(size_increase[0] / size[name][0]) # dist-1 / size
 
     # Compute mean and std
     diversity_stats = {num_candidates: {} for num_candidates in candidate_range}
+    dist_1_stats = {num_candidates: {} for num_candidates in candidate_range}
+    sizes_stats = {num_candidates: {} for num_candidates in candidate_range}
+    ansd_stats = {num_candidates: {} for num_candidates in candidate_range}
+    dist1_per_size_stats = {num_candidates: {} for num_candidates in candidate_range}
+
     for num_candidates in candidate_range:
         for name in base:
             vals = diversity_data[num_candidates][name]
-            if len(vals) > 0:
-                avg = float(np.mean(vals))
-                std = float(np.std(vals))
-            else:
-                avg = std = 0.0
+            avg = float(np.mean(vals))
+            std = float(np.std(vals))
             diversity_stats[num_candidates][name] = (avg, std)
+
+
+            vals = dist_1_data[num_candidates][name]
+            avg = float(np.mean(vals))
+            std = float(np.std(vals))
+            dist_1_stats[num_candidates][name] = (avg, std)
+
+
+            vals = sizes_data[num_candidates][name]
+            avg = float(np.mean(vals))
+            std = float(np.std(vals))
+            sizes_stats[num_candidates][name] = (avg, std)
+
+            vals = ansd_data[num_candidates][name]
+            avg = float(np.mean(vals))
+            std = float(np.std(vals))
+            ansd_stats[num_candidates][name] = (avg, std)
+
+            vals = dist1_per_size_data[num_candidates][name]
+            avg = float(np.mean(vals))
+            std = float(np.std(vals))
+            dist1_per_size_stats[num_candidates][name] = (avg, std)
+
 
     # Sort base by avg diversity for first candidate
     first_candidate = candidate_range[0]
     sorted_base = sorted(base, key=lambda name: diversity_stats[first_candidate][name][0])
 
+
     # Print LaTeX table
-    print("\\begin{tabular}{c" + "c" * len(candidate_range) + "}")
-    print("\\hline")
-    header = "Domain"
-    for num_candidates in candidate_range:
-        header += f" & {num_candidates}"
-    header += " \\\\"
-    print(header)
-    print("\\hline")
-    for name in sorted_base:
-        row = LABEL[name]
+    print("\\begin{tabular}{cccccc}")
+    print("\\toprule")
+    print("Domain $D$ & $|D|$ & $\\ansd(D)$ &$\\out(D)$ & dist-1 & dist-1/$|D|$ \\\\")
+    print("\\midrule")
+
+    for name in base:
         for num_candidates in candidate_range:
-            avg, std = diversity_stats[num_candidates][name]
-            row += f" & {round(avg, 3)} $\\pm$ {round(std, 3)}"
-            # x = (1 - avg)/2
-            # print(round(x,3))
-        row += " \\\\"
-        print(row)
-    print("\\hline")
+            domain_label = LABEL.get(name, name)
+
+            avg_size, std_size = sizes_stats[num_candidates][name]
+            avg_dist_1, std_dist_1 = dist_1_stats[num_candidates][name]
+            avg_ansd, std_ansd = ansd_stats[num_candidates][name]
+            avg_dist1_per_size, std_dist1_per_size  = dist1_per_size_stats[num_candidates][name]
+            avg_diversity, std_diversity = diversity_stats[num_candidates][name]
+
+            print(f"  {domain_label} & {int(avg_size)} & {round(avg_ansd,3)} & {round(avg_diversity,3)} & {avg_dist_1} & {round(avg_dist1_per_size,3)} \\\\")
+            print(f"  {domain_label} & {int(std_size)} & {round(std_ansd,3)} & {round(std_diversity,3)} & {round(std_dist_1,3)} & {round(std_dist1_per_size,3)} \\\\")
+            if name in ['ext_single_vote', 'balanced', 'spoc', 'single_crossing', 'euclidean_3d']:
+                print("\\midrule")
+    print("\\bottomrule")
     print("\\end{tabular}")
-
-
 
 
 def plot_domain_size_total(base, num_candidates) -> None:
@@ -168,32 +202,31 @@ def plot_domain_size_increase_bar(name, num_candidates) -> None:
 
 
 
+
 if __name__ == "__main__":
 
     base = [
-    #     'euclidean_3d',
-    #     'euclidean_3d',
-    #     'euclidean_2d',
-    #     'spoc',
-    #     'sp_double_forked',
-    #     'caterpillar',
+        'ext_single_vote',
+        'caterpillar',
         'balanced',
-        # 'single_peaked',
-        # 'single_crossing',
-        # 'euclidean_1d',
-        # 'ext_single_vote',
-        # 'single_vote',
-        # 'largest_condorcet'
+        'single_peaked',
+        'sp_double_forked',
+        'spoc',
+        'single_crossing',
+        'euclidean_1d',
+        'euclidean_2d',
+        'euclidean_3d',
+        'largest_condorcet'
     ]
 
+    num_runs = 10
     # candidate_range = [10, 11, 12]
     # candidate_range = [2,4,6,8,10,12,14,16,18,20]
-    candidate_range = [4]
-    num_runs = 1
+    candidate_range = [8]
 
-    for num_candidates in candidate_range:
-        print(num_candidates)
-        compute_domain_balls(base, num_candidates, num_runs)
+    # for num_candidates in candidate_range:
+        # print(num_candidates)
+        # compute_domain_balls(base, num_candidates, num_runs)
 
         # plot_domain_size_total(base, num_candidates)
         # plot_domain_size_increase(base, num_candidates)
@@ -201,4 +234,4 @@ if __name__ == "__main__":
         # for name in base:
         #     plot_domain_size_increase_bar(name, num_candidates)
 
-    # print_domain_diversity(base, candidate_range, num_runs)
+    print_domain_diversity(base, candidate_range, num_runs)

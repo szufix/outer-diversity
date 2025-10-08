@@ -71,15 +71,15 @@ def find_optimal_facilities_sampled_simulated_annealing(
         new_cost, sampled_size = outer_diversity_sampling(new_facilities_votes, num_samples)
 
         # Accept or reject the new solution
-        cost_diff = new_cost - current_diversity
+        gain = new_cost - current_diversity
 
-        if cost_diff < 0:
+        if gain > 0:
             accept = True
             improvements += 1
             last_improvement = iteration
         elif temperature > 1e-10:
             try:
-                prob = math.exp(-cost_diff / temperature)
+                prob = math.exp(gain / temperature)
                 accept = random.random() < prob
             except (OverflowError, FloatingPointError):
                 accept = False

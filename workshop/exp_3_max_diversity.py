@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 
 from diversity.diversity_utils import normalization
+from max_diversity.main import compute_optimal_nodes
 from print_utils import *
 from src.max_diversity.plot import load_optimal_nodes_results, load_domain_size_data
 
@@ -146,34 +147,28 @@ def plot_optimal_nodes_results(
 if __name__ == "__main__":
 
     methods = [
-        'ilp',  # Use individual computation for ILP
+        # 'ilp',  # Use individual computation for ILP
         'sa',
-        'ic',
+        # 'ic',
     ]
 
     num_candidates = 6
-    domain_sizes = range(1,30+1)
+    domain_sizes = range(1,10+1)
 
     # num_candidates = 8
     # domain_sizes = range(1,800+1)
 
-    max_iterations = None
+    max_iterations = 256
     num_samples = 1000
 
-    # x = []
-    # for method_name in methods:
-    #     # if method_name == 'ilp':
-    #     #     print(f'Method: {method_name} (using merged results)')
-    #     #     continue  # Skip computation, already merged
-    #
-    #     print('Method:', method_name)
-    #     start = time()
-    #     compute_optimal_nodes(num_candidates, domain_sizes, method_name,
-    #                           num_samples=num_samples, max_iterations=max_iterations)
-    #     end = time()
-    #     print(f'Time taken: {end - start} seconds')
-    #     x.append(end - start)
-    # print(x)
+    for method_name in methods:
+        # if method_name == 'ilp':
+        #     print(f'Method: {method_name} (using merged results)')
+        #     continue  # Skip computation, already merged
 
-    plot_optimal_nodes_results(num_candidates, methods, domain_sizes,
-                               with_structured_domains=False)
+        print('Method:', method_name)
+        compute_optimal_nodes(num_candidates, domain_sizes, method_name,
+                              num_samples=num_samples, max_iterations=max_iterations)
+
+    # plot_optimal_nodes_results(num_candidates, methods, domain_sizes,
+    #                            with_structured_domains=False)

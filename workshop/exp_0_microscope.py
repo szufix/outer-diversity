@@ -10,7 +10,7 @@ from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 from src.domain import *
 from src.domain.popularity import import_popularity_from_csv
 from src.print_utils import LABEL
-
+from image_processing import create_image_grid
 
 def get_permutations(s):
     return [list(p) for p in permutations(range(s))]

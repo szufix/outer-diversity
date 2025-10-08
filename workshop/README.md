@@ -2,12 +2,14 @@
 # Submission 1147: Outer Diversity of Structured Domains
 #
 
-Run the files in the presented order.
 
-To compute & plot Figure 6 run:
-python3 exp_5_popularity.py
+Run the files in the presented order. 
+Moreover, for most of the simulations Gurobi is required.
+
+
 
 To compute & plot Figure 1 (i.e., microscopes) run:
+python3 exp_5_popularity.py
 python3 exp_0_microscope.py
 
 To compute & plot Figure 3 run:
@@ -25,3 +27,6 @@ python3 exp_6_thresholds_ic.py
 
 To compute & plot Figure 5 run:
 python3 exp_3_max_diversity.py
+
+To compute & plot Figure 6 run:
+python3 exp_1_growing_domains.py
