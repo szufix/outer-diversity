@@ -12,7 +12,7 @@ def find_optimal_facilities_sampled_simulated_annealing(
     m_facilities: int,
     max_iterations: int = 10000,
     initial_temp: float = 0.5,
-    cooling_rate: float = 0.9,
+    cooling_rate: float = 0.95,
     num_samples: int = 100,
     start_with: str = 'ic',
 ):
@@ -169,7 +169,7 @@ def swap_distance(vote1: tuple, vote2: tuple) -> int:
 def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
                                                max_iterations: int = 10000,
                                                initial_temp: float = 0.5,
-                                               cooling_rate: float = 0.9,
+                                               cooling_rate: float = 0.95,
                                                 num_candidates=None) -> Tuple[List[int], int]:
     """
     Find facilities using simulated annealing to approximate optimal solution.
