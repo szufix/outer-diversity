@@ -65,7 +65,7 @@ def compute_optimal_nodes(
                                                 vote_graph, domain_size, previous_nodes)
         elif method_name == 'sa':
             optimal_nodes, total_cost = find_optimal_facilities_simulated_annealing(
-                vote_graph, domain_size, max_iterations=max_iterations)
+                vote_graph, domain_size, max_iterations=max_iterations, num_candidates=num_candidates)
         elif method_name == 'smpl_sa':
             optimal_nodes_votes, total_cost = find_optimal_facilities_sampled_simulated_annealing(
                 num_candidates, domain_size, max_iterations=max_iterations, num_samples=num_samples,
@@ -105,6 +105,14 @@ def compute_optimal_nodes(
                 'optimal_nodes_votes': str(optimal_nodes_votes),
             }
             previous_nodes = []  # Reset for sampled SA since we don't use graph nodes
+        elif method_name == 'sa':
+            result = {
+                'domain_size': domain_size,
+                'total_cost': total_cost,
+                'optimal_nodes_int': str(optimal_nodes),
+                'optimal_nodes_votes': str([int_to_vote[f] for f in optimal_nodes]) if int_to_vote is not None else str([]),
+            }
+            previous_nodes = optimal_nodes
         else:
             n = len(vote_graph.nodes)
             total_cost = 1 - total_cost / n * 2 / math.comb(num_candidates, 2)

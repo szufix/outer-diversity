@@ -11,7 +11,7 @@ def find_optimal_facilities_sampled_simulated_annealing(
     m_candidates: int,
     m_facilities: int,
     max_iterations: int = 10000,
-    initial_temp: float = 100.0,
+    initial_temp: float = 0.5,
     cooling_rate: float = 0.9,
     num_samples: int = 100,
     start_with: str = 'ic',
@@ -167,9 +167,10 @@ def swap_distance(vote1: tuple, vote2: tuple) -> int:
 
 
 def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
-                                               max_iterations: int = 100000,
-                                               initial_temp: float = 1000.0,
-                                               cooling_rate: float = 0.9) -> Tuple[List[int], int]:
+                                               max_iterations: int = 10000,
+                                               initial_temp: float = 0.5,
+                                               cooling_rate: float = 0.9,
+                                                num_candidates=None) -> Tuple[List[int], int]:
     """
     Find facilities using simulated annealing to approximate optimal solution.
     Fixed to use consistent cost calculation.
@@ -196,6 +197,9 @@ def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
     best_facilities = current_facilities.copy()
     best_cost = current_cost
 
+    n = len(graph.nodes)
+    best_cost = 1 - best_cost / n * 2 / math.comb(num_candidates, 2)
+
     temperature = initial_temp
     temp_update_freq = max(1, max_iterations // 10000)
 
@@ -219,18 +223,22 @@ def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
 
             # Use consistent graph-based cost calculation
             new_cost = compute_total_cost(graph, set(new_facilities))
+            n = len(graph.nodes)
+            new_cost = 1 - new_cost / n * 2 / math.comb(num_candidates, 2)
+
 
             # Accept or reject the new solution
-            cost_diff = new_cost - current_cost
+            gain = new_cost - current_cost
 
-            if cost_diff < 0:
+            if gain > 0:
                 accept = True
                 improvements += 1
                 stagnation_counter = 0
                 last_improvement = iteration
             elif temperature > 1e-10:
                 try:
-                    prob = math.exp(-cost_diff / temperature)
+                    prob = math.exp(gain / temperature)
+                    print(prob, temperature)
                     accept = random.random() < prob
                 except (OverflowError, FloatingPointError):
                     accept = False
@@ -242,7 +250,7 @@ def find_optimal_facilities_simulated_annealing(graph: nx.Graph, m: int,
                 current_cost = new_cost
 
                 # Update best solution if improved
-                if current_cost < best_cost:
+                if current_cost > best_cost:
                     best_facilities = current_facilities.copy()
                     best_cost = current_cost
                     print(f"SA improvement at iteration {iteration}: cost={best_cost}")
