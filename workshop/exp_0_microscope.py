@@ -1,4 +1,5 @@
 import csv
+import math
 import os
 from itertools import permutations
 
@@ -15,10 +16,6 @@ from image_processing import create_image_grid
 def get_permutations(s):
     return [list(p) for p in permutations(range(s))]
 
-
-# base = [
-#     'euclidean_2d', 'euclidean_1d', 'single_crossing', 'single_peaked', 'sp_double_forked', 'spoc', 'caterpillar', 'balanced',
-# ]
 
 samplers = {
     'euclidean_3d': euclidean_3d_domain,
@@ -116,13 +113,23 @@ def print_microscope(
         max_pop=None,
         with_title=True):
 
-    # Set normalization limits and center
-    ideal_pop = 40320
+    num_candidates = election.num_candidates
+    print("C", num_candidates)
+
+
+    ideal_pop = math.factorial(num_candidates)
+    print(ideal_pop)
 
     if min_pop is None:
         min_pop = 1
+
     if max_pop is None:
-        max_pop = 200000
+
+        max_pop = ideal_pop*4
+
+        # if num_candidates == 8:
+        #     max_pop = 200000
+
 
     popularity_without_ic = np.array([p for p in popularity if p >= 0])
     popularity_without_ic *= len(popularity_without_ic)
@@ -223,7 +230,8 @@ def compute_microscope(num_candidates, base, num_ic_votes=None, with_ic=None):
         export_data_to_csv(election_with_ic, mapped_popularity, saveas)
 
 
-def plot_microscope(base, num_candidates, min_pop, max_pop, with_ic=False, num_ic_votes=None, with_title=True):
+def plot_microscope(base, num_candidates, min_pop=None, max_pop=None, with_ic=False,
+                    num_ic_votes=None, with_title=True, title=None):
     for sampler_name in base:
 
         if with_ic:
@@ -243,10 +251,11 @@ def plot_microscope(base, num_candidates, min_pop, max_pop, with_ic=False, num_i
 
         radius = None
 
-        if num_candidates == 8:
-            radius = 16
-        elif num_candidates == 6:
-            radius = 10
+        # FOR AAMAS
+        # if num_candidates == 8:
+        #     radius = 16
+        # elif num_candidates == 6:
+        #     radius = 10
 
 
         if radius is None:
@@ -263,11 +272,13 @@ def plot_microscope(base, num_candidates, min_pop, max_pop, with_ic=False, num_i
                 title_size=title_size
             )
 
-        title = f'{LABEL.get(sampler_name, sampler_name)}'
+        if title is None:
+            title = f'{LABEL.get(sampler_name, sampler_name)}'
 
         saveas = filename
 
-        print_microscope(election, popularity, title, saveas, min_pop, max_pop, with_title=with_title)
+        print_microscope(election, popularity, title, saveas, min_pop, max_pop,
+                         with_title=with_title)
 
 def save_microscope_colorbar(min_pop=1, max_pop=200000, ideal_pop=40320, filename='microscope_colorbar.png'):
 
@@ -300,37 +311,38 @@ def save_microscope_colorbar(min_pop=1, max_pop=200000, ideal_pop=40320, filenam
     plt.show()
 
 # To generate the colorbar PNG, call:
-save_microscope_colorbar()
+# save_microscope_colorbar()
 
-num_candidates = 8
-num_ic_votes = 512
+for num_candidates in [2,3,4,5,6,7,8]:
 
-min_pop = 1
-max_pop = 200000
+    num_ic_votes = 512
 
-
-base_sorted = [
-    # 'euclidean_3d',
-    # 'caterpillar',
-    # 'spoc',
-    # 'euclidean_2d',
-    # 'sp_double_forked',
-    # 'balanced',
-    'largest_condorcet',
-    # 'single_peaked',
-    # 'single_crossing',
-]
+    base_sorted = [
+        # 'euclidean_3d',
+        # 'caterpillar',
+        # 'spoc',
+        # 'euclidean_2d',
+        # 'sp_double_forked',
+        # 'balanced',
+        'largest_condorcet',
+        # 'single_peaked',
+        # 'single_crossing',
+    ]
 
 
-# WITHOUT IC
-# compute_microscope(num_candidates, base_sorted)
-plot_microscope(base_sorted, num_candidates, min_pop, max_pop)
-# paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
-# create_image_grid(paths,9,1, output_path=f'images/microscope/microscope_m{num_candidates}.png')
+    # WITHOUT IC
+    # compute_microscope(num_candidates, base_sorted)
+    # plot_microscope(base_sorted, num_candidates, title=f'LC, m={num_candidates}')
+    # paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
+    # create_image_grid(paths,9,1, output_path=f'images/microscope/microscope_m{num_candidates}.png')
 
 
-# WITH IC
-# compute_microscope(num_candidates, base_sorted, num_ic_votes=num_ic_votes, with_ic=True)
-# plot_microscope(base_sorted, num_candidates, min_pop, max_pop, with_ic=True, num_ic_votes=num_ic_votes)
-# paths = [f'images/online/{name}_m{num_candidates}_with_ic_{num_ic_votes}.png' for name in base_sorted]
-# create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}_with_ic.png')
+    # WITH IC
+    # compute_microscope(num_candidates, base_sorted, num_ic_votes=num_ic_votes, with_ic=True)
+    # plot_microscope(base_sorted, num_candidates, min_pop, max_pop, with_ic=True, num_ic_votes=num_ic_votes)
+    # paths = [f'images/online/{name}_m{num_candidates}_with_ic_{num_ic_votes}.png' for name in base_sorted]
+    # create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}_with_ic.png')
+
+# TMP
+paths = [f'images/online/largest_condorcet_m{c}.png' for c in [2,3,4,5,6,7,8]]
+create_image_grid(paths,7,1, output_path=f'images/microscope/LC_microscope.png')

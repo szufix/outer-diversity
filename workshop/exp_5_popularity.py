@@ -69,22 +69,22 @@ def generate_popularity_histogram(num_candidates, name):
 if __name__ == "__main__":
 
     base = [
-        'euclidean_3d',
-        'euclidean_2d',
-        'spoc',
-        'sp_double_forked',
-        'caterpillar',
-        'balanced',
-        'single_peaked',
-        'single_crossing',
-        'euclidean_1d',
+        # 'euclidean_3d',
+        # 'euclidean_2d',
+        # 'spoc',
+        # 'sp_double_forked',
+        # 'caterpillar',
+        # 'balanced',
+        # 'single_peaked',
+        # 'single_crossing',
+        # 'euclidean_1d',
         'largest_condorcet',
     ]
 
-    num_candidates = 8
+    for num_candidates in [2,3,4,5,6,7,8]:
 
-    for name in reversed(base):
-        print(f"Processing domain: {name} with {num_candidates} candidates...")
+        for name in reversed(base):
+            print(f"Processing domain: {name} with {num_candidates} candidates...")
 
-        compute_data_for_popularity_histogram(num_candidates, name)
-        generate_popularity_histogram(num_candidates, name)
+            compute_data_for_popularity_histogram(num_candidates, name)
+            generate_popularity_histogram(num_candidates, name)
