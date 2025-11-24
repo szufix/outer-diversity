@@ -158,9 +158,14 @@ def compute_diversity_comparison_data_for_candidate(num_candidates, num_samples,
             writer.writerow(row)
 
 
-def compute_diversity_comparison_data_for_candidate_run(num_candidates, run, num_samples,
-                                                        max_iterations, with_max=True,
-                                                        results_dir=None):
+def compute_diversity_comparison_data_for_candidate_run(
+        num_candidates,
+        run,
+        num_samples,
+        max_iterations,
+        with_max=True,
+        results_dir=None
+):
     """
     Compute diversity data for a single run and num_candidates value, export to a separate CSV.
     """
@@ -198,7 +203,7 @@ def compute_diversity_comparison_data_for_candidate_run(num_candidates, run, num
 
 
 def run_fully_parallel_diversity_computation(candidate_range, num_samples, max_iterations,
-                                             with_max=True, num_runs=5):
+                                             with_max=True, num_runs=10):
     """
     Run diversity computation in parallel processes for each (num_candidates, run) pair.
     """
@@ -373,10 +378,11 @@ if __name__ == "__main__":
     num_samples = 1000
     max_iterations = 256
     runs_range = range(10)
-    # run_fully_parallel_diversity_computation(
-    #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
-    # merge_single_peaked_results(candidate_range, runs_range, with_max=True)
-    plot_joint_diversity_comparison(with_max=True)
+    num_runs = 10
+    run_fully_parallel_diversity_computation(
+        candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
+    merge_single_peaked_results(candidate_range, runs_range, with_max=True)
+    # plot_joint_diversity_comparison(with_max=True)
     # plot_joint_diversity_comparison_normalized()
 
     # merge_single_peaked_results(range(2, 20 + 1), runs_range, with_max=False)

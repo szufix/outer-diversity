@@ -71,6 +71,9 @@ def sample_diverse_votes(num_candidates: int, domain_size: int, threshold: int =
     votes = []
     attempts = 0
     max_attempts = 10000
+    # Treat None threshold as 0 (no minimal required distance)
+    if threshold is None:
+        threshold = 0
     while len(votes) < domain_size and attempts < max_attempts:
         # threshold = max_dist / (len(votes) + 2)
         # threshold = max([5, max_dist / (len(votes) + 2)])
@@ -84,10 +87,15 @@ def sample_diverse_votes(num_candidates: int, domain_size: int, threshold: int =
     #     raise RuntimeError(f"Could not find enough diverse votes after {attempts} attempts.")
     return votes
 
+
+import math
+
+
 def outer_diversity_sampling(
-        domain,
-        num_samples: int = 100,
-):
+         domain,
+         num_samples: int = 100,
+         inner_distance = 'swap',
+ ):
     """
     Compute outer diversity by sampling from Impartial Culture and measuring
     swap distances to the closest vote in the domain.
@@ -118,36 +126,70 @@ def outer_diversity_sampling(
         # sampled_votes = spread_permutations(num_candidates, num_samples)
         sampled_votes = sample_impartial_culture(num_candidates, num_samples)
 
+    # If domain has only a single vote, diversity is zero (no variation)
+    if len(domain) == 1:
+        return 0.0, len(sampled_votes)
 
-    sampled_potes = votes_to_potes(sampled_votes)
+    # Initialize in case an unknown inner_distance is passed
+    total_distance = 0.0
 
-    domain_potes = votes_to_potes(domain)
+    if inner_distance == 'swap':
+        sampled_potes = votes_to_potes(sampled_votes)
 
-    distances = []
-    for sampled_pote in sampled_potes:
-        # Find minimum distance to any vote in the domain
+        domain_potes = votes_to_potes(domain)
 
-        tmp_distances = []
-        for domain_pote in domain_potes:
-            distance = swap_distance_between_potes(sampled_pote, domain_pote)
-            tmp_distances.append(distance)
-        distances.append(int(min(tmp_distances)))
+        distances = []
+        for sampled_pote in sampled_potes:
+            # Find minimum distance to any vote in the domain
 
-    # Simplified normalization to avoid large factorials
-    total_distance = sum(distances) / len(distances) * 2 / math.comb(num_candidates, 2)
-    total_distance = 1 - total_distance
+            tmp_distances = []
+            for domain_pote in domain_potes:
+
+                distance = swap_distance_between_potes(sampled_pote, domain_pote)
+                tmp_distances.append(distance)
+            distances.append(int(min(tmp_distances)))
+
+        # Simplified normalization to avoid large factorials
+        total_distance = sum(distances) / len(distances) * 2 / math.comb(num_candidates, 2)
+        total_distance = 1 - total_distance
+
+    elif inner_distance == 'spearman':
+
+        distances = []
+        for sampled_vote in sampled_votes:
+            # Find minimum distance to any vote in the domain
+
+            tmp_distances = []
+            for domain_vote in domain:
+
+                distance = spearman_distance_between_votes(sampled_vote, domain_vote)
+                tmp_distances.append(distance)
+            distances.append(int(min(tmp_distances)))
+
+        # if num_candidates % 2 == 0:
+        #     max_spearman = (num_candidates * num_candidates) // 2
+        # else:
+        #     max_spearman = (num_candidates * num_candidates - 1) // 2
+
+        m = num_candidates
+        total_div = (m*m - 1) // 3 * len(sampled_votes)
+        total_spearman = sum(distances) / total_div
+        total_distance = 1 - total_spearman
 
     return total_distance, len(sampled_votes)
 
 
+
 def outer_diversity_sampling_for_structered_domains(
-        domain_name: str,
-        domain,
-        num_candidates: int,
-        num_samples: int,
-):
+         domain_name: str,
+         domain,
+         num_candidates: int,
+         num_samples: int,
+ ):
 
     # Check if num_samples is larger than num_candidates factorial
+    # Pre-initialize domain_obj to satisfy static analyzers
+    domain_obj = None
     if num_candidates < 10 and num_samples >= math.factorial(num_candidates):
         # Use all permutations if samples >= total
         # print("ALL", num_candidates)
@@ -179,4 +221,3 @@ def outer_diversity_sampling_for_structered_domains(
     total_distance = 1 - total_distance
 
     return total_distance, len(sampled_votes)
-

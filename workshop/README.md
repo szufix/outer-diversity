@@ -17,7 +17,7 @@ python3 exp_4a_changing_m_single_peaked.py
 python3 exp_4b_changing_m_single_crossing.py
 python3 exp_4c_changing_m_euclidean_2d.py
 
-To compute & plot the left plot of Figure 2 and  run:
+To compute & plot the left plot of Figure 2 and run:
 python3 exp_4d_changing_m_others.py
 python3 exp_4x_changing_m_all.py
 

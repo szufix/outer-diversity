@@ -73,6 +73,21 @@ def swap_distance_between_potes(pote_1: list, pote_2: list) -> int:
     return swap_distance
 
 
+def spearman_distance_between_votes(v1, v2):
+    """
+    Spearman footrule distance between two votes (permutations).
+    Each vote is a sequence/tuple of candidate identifiers (same set and length).
+    Returns the integer sum of absolute differences of candidate positions.
+    """
+    if len(v1) != len(v2):
+        raise ValueError("Votes must have the same length")
+    pos1 = {c: i for i, c in enumerate(v1)}
+    pos2 = {c: i for i, c in enumerate(v2)}
+    if set(pos1.keys()) != set(pos2.keys()):
+        raise ValueError("Votes must contain the same candidates")
+    return sum(abs(pos1[c] - pos2[c]) for c in pos1)
+
+
 def votes_to_potes(votes):
     return np.array([[list(vote).index(i) for i, _ in enumerate(vote)]
               for vote in votes])

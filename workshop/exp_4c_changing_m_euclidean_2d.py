@@ -21,16 +21,16 @@ def normalization(m):
     return math.factorial(m) // 2 * math.comb(m, 2)
 
 
-def compute_2d_diversity(num_candidates, num_samples):
+
+def compute_2d_diversity(num_candidates, num_samples, inner_distance='swap'):
     """Compute outer diversity for 2D domain."""
     domain = euclidean_2d_domain(num_candidates)
 
     # STANDARD APPROACH
     outer_diversity, num_votes = outer_diversity_sampling(
-        domain, num_samples=num_samples)
+        domain, num_samples=num_samples, inner_distance=inner_distance)
 
     return outer_diversity, len(domain)
-
 
 
 def compute_optimal_diversity_for_size(num_candidates, domain_size, num_samples, max_iterations):
@@ -222,7 +222,9 @@ def plot_joint_diversity_comparison_normalized():
     plt.show()
 
 
-def compute_diversity_comparison_data_for_candidate_run(num_candidates, run, num_samples, max_iterations, with_max=True, results_dir=None):
+def compute_diversity_comparison_data_for_candidate_run(
+        num_candidates, run, num_samples, max_iterations, with_max=True,
+        results_dir=None, inner_distance='swap'):
     """
     Compute diversity data for a single run and num_candidates value, export to a separate CSV.
     """
@@ -235,7 +237,7 @@ def compute_diversity_comparison_data_for_candidate_run(num_candidates, run, num
     with open(csv_path, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
-        twod_diversity, twod_size = compute_2d_diversity(num_candidates, num_samples)
+        twod_diversity, twod_size = compute_2d_diversity(num_candidates, num_samples, inner_distance)
         if with_max:
             optimal_diversity = compute_optimal_diversity_for_size(num_candidates, twod_size, num_samples, max_iterations)
         else:
@@ -249,7 +251,14 @@ def compute_diversity_comparison_data_for_candidate_run(num_candidates, run, num
         }
         writer.writerow(row)
 
-def run_fully_parallel_diversity_computation(candidate_range, num_samples, max_iterations, with_max=True, num_runs=5):
+def run_fully_parallel_diversity_computation(
+    candidate_range,
+    num_samples,
+    max_iterations,
+    with_max=True,
+    num_runs=10,
+    inner_distance = 'swap',
+):
     """
     Run diversity computation in parallel processes for each (num_candidates, run) pair.
     """
@@ -258,7 +267,13 @@ def run_fully_parallel_diversity_computation(candidate_range, num_samples, max_i
     for num_candidates in candidate_range:
         for run in range(num_runs):
             p = multiprocessing.Process(target=compute_diversity_comparison_data_for_candidate_run,
-                                       args=(num_candidates, run, num_samples, max_iterations, with_max, results_dir))
+                                       args=(num_candidates,
+                                             run,
+                                             num_samples,
+                                             max_iterations,
+                                             with_max,
+                                             results_dir,
+                                             inner_distance))
             p.start()
             processes.append(p)
     for p in processes:
@@ -299,13 +314,22 @@ def merge_euclidean_2d_results(candidate_range, runs_range, with_max=True):
 
 
 if __name__ == "__main__":
-    candidate_range = range(2, 16+1)
-    num_samples = 1000
-    max_iterations = 256
-    runs_range = range(10)
+    # candidate_range = range(2, 16+1)
+    # num_samples = 1000
+    # max_iterations = 256
+    # runs_range = range(10)
+    # num_runs = 1
+
+    candidate_range = range(2, 10+1)
+    num_samples = 10
+    max_iterations = 10
+    num_runs = 1
+
     # run_fully_parallel_diversity_computation(
-    #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs)
-    merge_euclidean_2d_results(candidate_range, runs_range, with_max=True)
+    #     candidate_range, num_samples, max_iterations, with_max=True, num_runs=num_runs,
+    #     inner_distance='spearman',
+    # )
+    # merge_euclidean_2d_results(candidate_range, runs_range, with_max=True)
     plot_joint_diversity_comparison(candidate_range, with_max=True)
     # plot_joint_diversity_comparison_normalized()
 
