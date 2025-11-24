@@ -233,7 +233,7 @@ if __name__ == "__main__":
         'caterpillar'
     ]
     candidate_range = range(2, 8+1)
-    num_samples = 1000
+    num_samples = 100
     runs_range = range(10)
     inner_distance = 'spearman'
 

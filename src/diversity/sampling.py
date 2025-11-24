@@ -172,7 +172,7 @@ def outer_diversity_sampling(
         #     max_spearman = (num_candidates * num_candidates - 1) // 2
 
         m = num_candidates
-        total_div = (m*m - 1) // 3 * len(sampled_votes)
+        total_div = (m*m - 1) / 3 * len(sampled_votes)
         total_spearman = sum(distances) / total_div
         total_distance = 1 - total_spearman
 
