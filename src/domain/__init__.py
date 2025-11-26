@@ -41,6 +41,10 @@ from src.domain.fishburn import (
     fishburn_domain
 )
 
+from src.domain.ball import (
+    ball_domain
+)
+
 __all__ = [
     'single_crossing_domain',
     'single_peaked_domain',
@@ -65,4 +69,5 @@ __all__ = [
     'ext_single_vote_domain',
     'largest_condorcet_domain',
     'fishburn_domain',
+    'ball_domain',
 ]
