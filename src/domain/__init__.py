@@ -33,12 +33,12 @@ from src.domain.special import (
     ext_single_vote_domain,
 )
 
-from src.domain.largest_condorcet import (
+from src.domain.condorcet import (
     largest_condorcet_domain,
 )
 
 from src.domain.fishburn import (
-    fishburn_domain
+    largest_fishburn_domain
 )
 
 from src.domain.ball import (
@@ -68,6 +68,6 @@ __all__ = [
     'single_vote_domain',
     'ext_single_vote_domain',
     'largest_condorcet_domain',
-    'fishburn_domain',
+    'largest_fishburn_domain',
     'ball_domain',
 ]

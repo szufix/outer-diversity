@@ -39,7 +39,7 @@ samplers = {
     # 'sc_with_gaps': single_crossing_with_gaps,
     # 'weighted_sc_with_gaps': weighted_single_crossing_with_gaps,
     'largest_condorcet': largest_condorcet_domain,
-    'fishburn': fishburn_domain,
+    'largest_fishburn': largest_fishburn_domain,
 }
 
 COLORS = ['black',
@@ -324,15 +324,15 @@ for num_candidates in [2,3,4,5,6,7,8]:
         # 'euclidean_2d',
         # 'sp_double_forked',
         # 'balanced',
-        'largest_condorcet',
+        'largest_fishburn',
         # 'single_peaked',
         # 'single_crossing',
     ]
 
 
     # WITHOUT IC
-    # compute_microscope(num_candidates, base_sorted)
-    # plot_microscope(base_sorted, num_candidates, title=f'LC, m={num_candidates}')
+    compute_microscope(num_candidates, base_sorted)
+    plot_microscope(base_sorted, num_candidates, title=f'Fishburn, m={num_candidates}')
     # paths = [f'images/online/{name}_m{num_candidates}.png' for name in base_sorted]
     # create_image_grid(paths,9,1, output_path=f'images/microscope/microscope_m{num_candidates}.png')
 
@@ -344,5 +344,5 @@ for num_candidates in [2,3,4,5,6,7,8]:
     # create_image_grid(paths,3,3, output_path=f'images/microscope/microscope_m{num_candidates}_with_ic.png')
 
 # TMP
-paths = [f'images/online/largest_condorcet_m{c}.png' for c in [2,3,4,5,6,7,8]]
-create_image_grid(paths,7,1, output_path=f'images/microscope/LC_microscope.png')
+# paths = [f'images/online/largest_fishburn_m{c}.png' for c in [2,3,4,5,6,7,8]]
+# create_image_grid(paths,7,1, output_path=f'images/microscope/fishburn_microscope.png')

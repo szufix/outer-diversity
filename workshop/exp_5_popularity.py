@@ -78,13 +78,13 @@ if __name__ == "__main__":
         # 'single_peaked',
         # 'single_crossing',
         # 'euclidean_1d',
-        'largest_condorcet',
+        'largest_fishburn',
     ]
 
-    for num_candidates in [2,3,4,5,6,7,8]:
+    for num_candidates in [2,3,4,5,6,7,8,9,10]:
 
         for name in reversed(base):
             print(f"Processing domain: {name} with {num_candidates} candidates...")
 
             compute_data_for_popularity_histogram(num_candidates, name)
-            generate_popularity_histogram(num_candidates, name)
+            # generate_popularity_histogram(num_candidates, name)

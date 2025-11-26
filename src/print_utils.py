@@ -29,7 +29,7 @@ LABEL = {
 
     'max': '~Max',
     'largest_condorcet': 'Largest Cond.',
-    'fishburn': 'Fishburn',
+    'largest_fishburn': 'Largest Fishburn',
 }
 
 SHORT_LABEL = {
@@ -52,7 +52,7 @@ SHORT_LABEL = {
 
     'max': '~Max',
     'largest_condorcet': 'LC',
-    'fishburn': 'Fishburn',
+    'largest_fishburn': 'LF',
 }
 
 LINE = {
